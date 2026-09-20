@@ -1,14 +1,14 @@
 import folderPicker from "@/services/folderPicker/picker";
 import type { Video } from "@/types/video.type";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const [videos, setVideos] = useState<Video[]>([]);
 
-  const selectVideos = async () => {
+  const selectVideos = async (freshPick: boolean = false) => {
     try {
-      const selectedVideos = await folderPicker();
+      const selectedVideos = await folderPicker(freshPick);
       setVideos(selectedVideos);
     } catch (error) {
       console.error(error);
@@ -16,9 +16,13 @@ export default function Index() {
     }
   };
 
+  useEffect(() => {
+    selectVideos(false);
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Button title="Select Videos" onPress={selectVideos} />
+      <Button title="Select Videos" onPress={() => selectVideos(true)} />
       <View style={styles.videoList}>
         {videos.map((video, idx) => (
           <Text key={idx}>{video.name}</Text>

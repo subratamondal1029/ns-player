@@ -1,12 +1,10 @@
 import { Video } from "@/types/video.type";
 import { Directory, File } from "expo-file-system";
+// TODO: save playlist key
 
 export default async function folderPicker(): Promise<Video[]> {
-
-  
   console.log("Folder picker initialized");
   try {
-    
     const directory = await Directory.pickDirectoryAsync();
 
     if (directory) {
