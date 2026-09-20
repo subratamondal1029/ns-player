@@ -5,14 +5,18 @@ import { Button, StyleSheet, Text, View } from "react-native";
 
 export default function Index() {
   const [videos, setVideos] = useState<Video[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const selectVideos = async (freshPick: boolean = false) => {
     try {
+      setLoading(true);
       const selectedVideos = await folderPicker(freshPick);
       setVideos(selectedVideos);
     } catch (error) {
       console.error(error);
       alert((error as Error)?.message || "Videos Selection failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -24,9 +28,11 @@ export default function Index() {
     <View style={styles.container}>
       <Button title="Select Videos" onPress={() => selectVideos(true)} />
       <View style={styles.videoList}>
-        {videos.map((video, idx) => (
-          <Text key={idx}>{video.name}</Text>
-        ))}
+        {loading ? (
+          <Text>Loading...</Text>
+        ) : (
+          videos.map((video, idx) => <Text key={idx}>{video.name}</Text>)
+        )}
       </View>
     </View>
   );
