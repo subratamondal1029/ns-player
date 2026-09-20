@@ -1,16 +1,26 @@
 import { Video } from "@/types/video.type";
+import { loadDir, saveDir } from "../storage/storage.web";
 
 export default async function folderPicker(): Promise<Video[]> {
   try {
-    const showDirectoryPicker = window.showDirectoryPicker;
+    let dirHandler = await loadDir();
 
-    if (!showDirectoryPicker) {
-      throw new Error("Directory picker is not supported in this environment", {
-        cause: "CUSTOM",
-      });
+    if (!dirHandler) {
+      const showDirectoryPicker = window.showDirectoryPicker;
+
+      if (!showDirectoryPicker) {
+        throw new Error(
+          "Directory picker is not supported in this environment",
+          {
+            cause: "CUSTOM",
+          },
+        );
+      }
+
+      dirHandler = await showDirectoryPicker();
+      await saveDir(dirHandler);
     }
 
-    const dirHandler = await showDirectoryPicker();
     const videos: Video[] = [];
 
     for await (const entry of dirHandler.values()) {
