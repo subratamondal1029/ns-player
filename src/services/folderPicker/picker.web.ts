@@ -1,46 +1,16 @@
 import { Video } from "@/types/video.type";
-import { loadDir, saveDir } from "../storage/storage.web";
-// TODO: save playlist key
 
-const pickFolder = async (): Promise<FileSystemDirectoryHandle> => {
-  const showDirectoryPicker = window.showDirectoryPicker;
-
-  if (!showDirectoryPicker) {
-    throw new Error("Directory picker is not supported in this environment", {
-      cause: "CUSTOM",
-    });
-  }
-
-  const handler = await showDirectoryPicker();
-  await saveDir(handler);
-  return handler;
-};
-
-export default async function folderPicker(
-  freshPick: boolean,
-): Promise<Video[]> {
+const pickDir = async (): Promise<FileSystemDirectoryHandle> => {
   try {
-    let dirHandler: FileSystemDirectoryHandle;
+    const showDirectoryPicker = window.showDirectoryPicker;
 
-    if (freshPick) {
-      dirHandler = await pickFolder();
-    } else {
-      dirHandler = await loadDir();
-      if (!dirHandler) {
-        dirHandler = await pickFolder();
-      }
+    if (!showDirectoryPicker) {
+      throw new Error("Directory picker is not supported in this environment", {
+        cause: "CUSTOM",
+      });
     }
 
-    const videos: Video[] = [];
-
-    for await (const entry of dirHandler.values()) {
-      if (entry.kind == "directory") continue;
-
-      const file = await entry.getFile();
-      videos.push({ name: file.name, size: file.size });
-    }
-
-    return videos;
+    return await showDirectoryPicker();
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw new Error("Directory selection cancelled", { cause: error });
@@ -52,4 +22,23 @@ export default async function folderPicker(
       throw new Error("Failed to read directory", { cause: error });
     }
   }
-}
+};
+
+const getVideos = async (dir: FileSystemDirectoryHandle): Promise<Video[]> => {
+  try {
+    const videos: Video[] = [];
+
+    for await (const entry of dir.values()) {
+      if (entry.kind == "directory") continue;
+
+      const file = await entry.getFile();
+      videos.push({ name: file.name, size: file.size });
+    }
+
+    return videos;
+  } catch (error) {
+    throw new Error("Failed to retrieve videos", { cause: error });
+  }
+};
+
+export { getVideos, pickDir };
