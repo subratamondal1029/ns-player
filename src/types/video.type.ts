@@ -1,5 +1,7 @@
+import { Directory } from "expo-file-system";
+
 export interface Video {
-    uri?: string
-    name: string
-    size: number
+  name: string;
+  size: number;
 }
+export type Dir = FileSystemDirectoryHandle | Directory;

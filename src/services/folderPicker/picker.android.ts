@@ -1,4 +1,4 @@
-import { Directory, File } from "expo-file-system";
+import { Directory } from "expo-file-system";
 
 const pickDir = async (): Promise<Directory> => {
   try {
@@ -18,18 +18,4 @@ const pickDir = async (): Promise<Directory> => {
   }
 };
 
-const getVideos = async (dir: Directory): Promise<File[]> => {
-  try {
-    const entities = dir.list();
-
-    const videos = entities
-      .filter((entity) => entity instanceof File)
-      .filter((file) => file.type?.startsWith("video/") && file.exists);
-
-    return videos;
-  } catch (error) {
-    throw new Error("Failed to retrieve videos", { cause: error });
-  }
-};
-
-export { getVideos, pickDir };
+export { pickDir };

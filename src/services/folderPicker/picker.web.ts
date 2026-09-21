@@ -1,5 +1,3 @@
-import { Video } from "@/types/video.type";
-
 const pickDir = async (): Promise<FileSystemDirectoryHandle> => {
   try {
     const showDirectoryPicker = window.showDirectoryPicker;
@@ -24,21 +22,4 @@ const pickDir = async (): Promise<FileSystemDirectoryHandle> => {
   }
 };
 
-const getVideos = async (dir: FileSystemDirectoryHandle): Promise<Video[]> => {
-  try {
-    const videos: Video[] = [];
-
-    for await (const entry of dir.values()) {
-      if (entry.kind == "directory") continue;
-
-      const file = await entry.getFile();
-      videos.push({ name: file.name, size: file.size });
-    }
-
-    return videos;
-  } catch (error) {
-    throw new Error("Failed to retrieve videos", { cause: error });
-  }
-};
-
-export { getVideos, pickDir };
+export { pickDir };
