@@ -1,54 +1,40 @@
-import folderPicker from "@/services/folderPicker/picker";
-import type { Video } from "@/types/video.type";
-import { useEffect, useState } from "react";
-import { Button, StyleSheet, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-export default function Index() {
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+import VideoList from "@/components/VideoList";
 
-  const selectVideos = async (freshPick: boolean = false) => {
-    try {
-      setLoading(true);
-      const selectedVideos = await folderPicker(freshPick);
-      setVideos(selectedVideos);
-    } catch (error) {
-      console.error(error);
-      alert((error as Error)?.message || "Videos Selection failed");
-    } finally {
-      setLoading(false);
-    }
-  };
+import styles  from "./index.styles";
 
-  useEffect(() => {
-    selectVideos(false);
-  }, []);
-
+export default function App() {
   return (
-    <View style={styles.container}>
-      <Button title="Select Videos" onPress={() => selectVideos(true)} />
-      <View style={styles.videoList}>
-        {loading ? (
-          <Text>Loading...</Text>
-        ) : (
-          videos.map((video, idx) => <Text key={idx}>{video.name}</Text>)
-        )}
-      </View>
-    </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <Text style={styles.title}>Playlist Title here</Text>
+
+          <View style={styles.topButtons}>
+            <Pressable style={styles.button}>
+              <Text style={styles.buttonText}>select</Text>
+            </Pressable>
+
+            <Pressable style={[styles.button, styles.syncButton]}>
+              <Text style={styles.buttonText}>sync</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.actionButtons}>
+            <Pressable style={styles.actionButton}>
+              <Text style={styles.actionText}>continue</Text>
+            </Pressable>
+
+            <Pressable style={styles.actionButton}>
+              <Text style={styles.actionText}>start over</Text>
+            </Pressable>
+          </View>
+
+          <VideoList />
+        </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  videoList: {
-    width: "100%",
-    padding: 10,
-    flex: 1,
-    flexDirection: "column",
-    gap: 10,
-  },
-});
