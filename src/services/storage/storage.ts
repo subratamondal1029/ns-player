@@ -1,12 +1,16 @@
+import { Directory } from "expo-file-system";
 import { Platform } from "react-native";
 
-const saveDir = async () => {
+// TODO: store playlist key
+
+type Dir = FileSystemDirectoryHandle | Directory;
+
+const saveDir = async (dir: Dir): Promise<void> => {
   throw new Error(`Directory saving is not supported in ${Platform.OS}`);
 };
 
-const loadDir = async () => {
+const loadDir = async (): Promise<Dir | null> => {
   throw new Error(`Directory loading is not supported in ${Platform.OS}`);
 };
 
-
-export {saveDir, loadDir};
+export { loadDir, saveDir };

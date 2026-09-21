@@ -16,11 +16,10 @@ const getDB = async () => {
   });
 };
 
-const saveDir = async (handler: FileSystemDirectoryHandle) => {
+const saveDir = async (handler: FileSystemDirectoryHandle): Promise<void> => {
   try {
     const db = await getDB();
-    const result = await db.put(DIR_STORE_NAME, handler, DIR_STORE_KEY);
-    console.log("Dir saved successfully", result);
+    await db.put(DIR_STORE_NAME, handler, DIR_STORE_KEY);
   } catch (error) {
     throw new Error("Dir save failed", { cause: error });
   }
