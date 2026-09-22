@@ -5,14 +5,15 @@ import VideoList from "@/components/VideoList";
 
 import { pickDir } from "@/services/folderPicker/picker";
 import { loadDir, saveDir } from "@/services/storage/storage";
-import { findVideos } from "@/services/video/video";
-import type { Video } from "@/types/video.type";
+import { findVideos, getVideoUri } from "@/services/video/video";
+import type { Dir, Video } from "@/types/video.type";
 import { sortVideos } from "@/utils/sortVideos";
-import { useState } from "react";
+import { router } from "expo-router";
+import { useCallback, useState } from "react";
 import styles from "./index.styles";
 
 export default function App() {
-  const [playlistName, setPlaylistName] = useState<string>("");
+  const [dir, setDir] = useState<Dir | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedVideoIdx, setSelectedVideoIdx] = useState<number>(0);
@@ -27,7 +28,7 @@ export default function App() {
         // const playlistKey = prompt("Enter a name for the new playlist: "); //NOTE: test only
       }
 
-      setPlaylistName(dir.name);
+      setDir(dir);
       await saveDir(dir);
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
@@ -38,11 +39,35 @@ export default function App() {
     }
   };
 
+  const openPlayer = useCallback(async () => {
+    if (!dir) return;
+
+    const video = videos[selectedVideoIdx];
+    if (!video) return;
+    console.log(video)
+
+    const uri = await getVideoUri(dir, video.name);
+    if (!uri) return;
+
+    console.log(uri)
+    // Open the video player
+    router.push({
+      pathname: "/player",
+      params: { title: video.name, uri },
+    });
+  }, [selectedVideoIdx, videos]);
+
+  const play = (index: number) => {
+    console.log("play video: " + index);
+    setSelectedVideoIdx(index);
+    openPlayer();
+  };
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          <Text style={styles.title}>{playlistName}</Text>
+          <Text style={styles.title}>{dir?.name}</Text>
 
           <View style={styles.topButtons}>
             <Pressable style={styles.button} onPress={selectVideos}>
@@ -67,7 +92,11 @@ export default function App() {
           {loading ? (
             <Text>Loading playlist...</Text>
           ) : videos.length > 0 ? (
-            <VideoList videos={videos} continueVideoIdx={selectedVideoIdx} />
+            <VideoList
+              videos={videos}
+              continueVideoIdx={selectedVideoIdx}
+              play={play}
+            />
           ) : (
             <Text>No videos found</Text>
           )}

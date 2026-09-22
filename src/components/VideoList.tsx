@@ -1,15 +1,17 @@
 import { Video } from "@/types/video.type";
-import { ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import styles from "./videoList.styles";
 
 type VideoListProps = {
   videos: Video[];
   continueVideoIdx: number;
+  play(index: number): void;
 };
 
 export default function VideoList({
   videos,
   continueVideoIdx,
+  play,
 }: VideoListProps) {
   return (
     <ScrollView
@@ -18,7 +20,7 @@ export default function VideoList({
       showsVerticalScrollIndicator={false}
     >
       {videos.map((video, index) => (
-        <View key={index} style={styles.videoItem}>
+        <Pressable key={index} style={styles.videoItem} onPress={() => play(index)}>
           <Text style={styles.videoTitle}>{video.name}</Text>
 
           {continueVideoIdx == index && (
@@ -32,7 +34,7 @@ export default function VideoList({
               </View>
             </>
           )}
-        </View>
+        </Pressable>
       ))}
     </ScrollView>
   );
