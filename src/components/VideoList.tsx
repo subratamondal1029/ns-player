@@ -1,9 +1,16 @@
+import { Video } from "@/types/video.type";
 import { ScrollView, Text, View } from "react-native";
 import styles from "./videoList.styles";
 
-const videos = ["Video title comes here...", "", "", "", "", "", ""];
+type VideoListProps = {
+  videos: Video[];
+  continueVideoIdx: number;
+};
 
-export default function VideoList() {
+export default function VideoList({
+  videos,
+  continueVideoIdx,
+}: VideoListProps) {
   return (
     <ScrollView
       style={styles.list}
@@ -12,10 +19,10 @@ export default function VideoList() {
     >
       {videos.map((video, index) => (
         <View key={index} style={styles.videoItem}>
-          {index === 0 && (
-            <>
-              <Text style={styles.videoTitle}>{video}</Text>
+          <Text style={styles.videoTitle}>{video.name}</Text>
 
+          {continueVideoIdx == index && (
+            <>
               <View style={styles.progressCircle}>
                 <View style={styles.progressCircleInner} />
               </View>
