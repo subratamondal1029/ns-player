@@ -5,7 +5,6 @@ const findVideos = async (dir: FileSystemDirectoryHandle): Promise<Video[]> => {
     const videos: Video[] = [];
 
     for await (const entry of dir.values()) {
-      //FIXME: not working on loadDir working on fresh pick only for web
       if (entry.kind == "directory") continue;
 
       const file = await entry.getFile();

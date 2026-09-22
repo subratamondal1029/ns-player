@@ -2,6 +2,16 @@ import { DB_NAME, DIR_STORE_KEY, DIR_STORE_NAME } from "@/constants";
 import { openDB } from "idb";
 import { Platform } from "react-native";
 
+type FileSystemDirectoryHandleWithPermission = FileSystemDirectoryHandle & {
+  queryPermission(options?: {
+    mode?: "read" | "readwrite";
+  }): Promise<PermissionState>;
+
+  requestPermission(options?: {
+    mode?: "read" | "readwrite";
+  }): Promise<PermissionState>;
+};
+
 const getDB = async () => {
   if (Platform.OS !== "web") {
     throw new Error("Operation not supported on this platform");
@@ -25,12 +35,34 @@ const saveDir = async (handler: FileSystemDirectoryHandle): Promise<void> => {
   }
 };
 
-const loadDir = async (): Promise<FileSystemDirectoryHandle> => {
+const loadDir = async (): Promise<FileSystemDirectoryHandleWithPermission> => {
   try {
     const db = await getDB();
-    const result = await db.get(DIR_STORE_NAME, DIR_STORE_KEY);
-    return result;
+    const dir: FileSystemDirectoryHandleWithPermission = await db.get(
+      DIR_STORE_NAME,
+      DIR_STORE_KEY,
+    );
+
+    const permission = await dir.queryPermission({
+      mode: "read",
+    });
+
+    if (permission !== "granted") {
+      const requested = await dir.requestPermission({
+        mode: "read",
+      });
+
+      if (requested !== "granted") {
+        throw new Error("Permission denied", { cause: "CUSTOM" });
+      }
+    }
+
+    return dir;
   } catch (error) {
+    if ((error as Error).cause === "CUSTOM") {
+      throw error;
+    }
+
     throw new Error("Dir load failed", { cause: error });
   }
 };
