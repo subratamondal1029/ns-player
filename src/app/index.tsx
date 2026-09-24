@@ -3,74 +3,104 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import VideoList from "@/components/VideoList";
 
+import ConfirmDialog from "@/components/dialogs/Confirm";
 import { pickDir } from "@/services/folderPicker/picker";
 import { loadDir, saveDir } from "@/services/storage/storage";
 import { findVideos, getVideoUri } from "@/services/video/video";
 import type { Dir, Video } from "@/types/video.type";
 import { sortVideos } from "@/utils/sortVideos";
 import { router } from "expo-router";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import styles from "./index.styles";
 
 export default function App() {
+  const [visible, setVisible] = useState<boolean>(true);
+  const [playlist, setPlaylist] = useState<string>("");
   const [dir, setDir] = useState<Dir | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedVideoIdx, setSelectedVideoIdx] = useState<number>(0);
 
-  const selectVideos = async () => {
+  const selectVideos = async (fresh: boolean = false) => {
     try {
       setLoading(true);
-      let dir = await loadDir();
+      let dir: Dir;
+      let playlistName: string;
 
-      if (!dir) {
+      if (fresh) {
         dir = await pickDir();
-        // const playlistKey = prompt("Enter a name for the new playlist: "); //NOTE: test only
+        playlistName = "new_playlist";
+      } else {
+        const tempDir = await loadDir();
+        //FIXME: need user interaction for requites permission (load failed in initial request)
+        // NOTE: create a confirm dialog and ask if user wanted to load the previous session
+        if (!tempDir) {
+          dir = await pickDir();
+          playlistName = "new_playlist";
+        } else {
+          dir = tempDir.dir;
+          playlistName = tempDir.playlist;
+        }
       }
 
       setDir(dir);
-      await saveDir(dir);
+      setPlaylist(playlistName);
+
+      await saveDir(dir, playlistName);
+
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
     } catch (error) {
+      console.error(error);
       alert((error as Error).message || "Failed to select videos");
     } finally {
       setLoading(false);
     }
   };
 
-  const openPlayer = useCallback(async () => {
-    if (!dir) return;
+  const openPlayer = async (index: number) => {
+    try {
+      if (!dir) return;
 
-    const video = videos[selectedVideoIdx];
-    if (!video) return;
-    console.log(video)
+      const video = videos[index];
+      if (!video) return;
 
-    const uri = await getVideoUri(dir, video.name);
-    if (!uri) return;
+      const uri = await getVideoUri(dir, video.name);
+      if (!uri) return;
 
-    console.log(uri)
-    // Open the video player
-    router.push({
-      pathname: "/player",
-      params: { title: video.name, uri },
-    });
-  }, [selectedVideoIdx, videos]);
-
-  const play = (index: number) => {
-    console.log("play video: " + index);
-    setSelectedVideoIdx(index);
-    openPlayer();
+      // Open the video player
+      setSelectedVideoIdx(index);
+      router.push({
+        pathname: "/player",
+        params: { title: video.name, uri },
+      });
+    } catch (error) {
+      console.error(error);
+      alert((error as Error).message || "Failed to open video player");
+    }
   };
+
+  // useEffect(() => {
+  //   selectVideos(false);
+  // }, []);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
+          {/* NOTE: testing for ConfirmDialog */}
+          <ConfirmDialog
+            visible={visible}
+            onCancel={() => setVisible(false)}
+            onConfirm={() => {
+              setVisible(false);
+              selectVideos(false);
+            }}
+          />
           <Text style={styles.title}>{dir?.name}</Text>
 
           <View style={styles.topButtons}>
-            <Pressable style={styles.button} onPress={selectVideos}>
+            <Pressable style={styles.button} onPress={() => selectVideos(true)}>
               <Text style={styles.buttonText}>select</Text>
             </Pressable>
 
@@ -95,7 +125,7 @@ export default function App() {
             <VideoList
               videos={videos}
               continueVideoIdx={selectedVideoIdx}
-              play={play}
+              play={openPlayer}
             />
           ) : (
             <Text>No videos found</Text>
