@@ -26,22 +26,31 @@ const getDB = async () => {
   });
 };
 
-const saveDir = async (handler: FileSystemDirectoryHandle): Promise<void> => {
+const saveDir = async (
+  handler: FileSystemDirectoryHandle,
+  playlist: string,
+): Promise<void> => {
   try {
     const db = await getDB();
-    await db.put(DIR_STORE_NAME, handler, DIR_STORE_KEY);
+    await db.put(DIR_STORE_NAME, { dir: handler, playlist }, DIR_STORE_KEY);
   } catch (error) {
     throw new Error("Dir save failed", { cause: error });
   }
 };
 
-const loadDir = async (): Promise<FileSystemDirectoryHandleWithPermission> => {
+const loadDir = async (): Promise<{
+  dir: FileSystemDirectoryHandleWithPermission;
+  playlist: string;
+} | null> => {
   try {
     const db = await getDB();
-    const dir: FileSystemDirectoryHandleWithPermission = await db.get(
-      DIR_STORE_NAME,
-      DIR_STORE_KEY,
-    );
+    const data = await db.get(DIR_STORE_NAME, DIR_STORE_KEY);
+
+    if (!data) return null;
+
+    const { dir, playlist } = data;
+
+    if (!dir || !playlist) return null;
 
     const permission = await dir.queryPermission({
       mode: "read",
@@ -57,7 +66,7 @@ const loadDir = async (): Promise<FileSystemDirectoryHandleWithPermission> => {
       }
     }
 
-    return dir;
+    return { dir, playlist };
   } catch (error) {
     if ((error as Error).cause === "CUSTOM") {
       throw error;
