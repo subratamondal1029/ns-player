@@ -86,6 +86,7 @@ export default function App() {
         <View style={styles.container}>
           {Platform.OS == "web" && (
             // solve web user interactivity issue for auto load dir
+            // TODO: show when dir exist in storage
             <ConfirmDialog
               message="Do you wanted to load previous session?"
               visible={visible}

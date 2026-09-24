@@ -1,11 +1,11 @@
-import { useLocalSearchParams } from "expo-router";
-import { VideoView, useVideoPlayer } from "expo-video";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
-import { Platform, Text, View } from "react-native";
+import { Platform, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import * as ScreenOrientation from "expo-screen-orientation";
 
+import VideoPlayer from "@/components/player/Player";
 import styles from "./player.styles";
 
 type PlayerParams = {
@@ -16,7 +16,14 @@ type PlayerParams = {
 
 const player = () => {
   const { title, uri } = useLocalSearchParams<PlayerParams>();
-  const pl = useVideoPlayer(uri);
+
+  const backToList = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.push("/");
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -28,25 +35,20 @@ const player = () => {
   }, [uri]);
 
   useEffect(() => {
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    if (Platform.OS !== "web") {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+    }
 
     return () => {
-      ScreenOrientation.unlockAsync();
+      if (Platform.OS !== "web") {
+        ScreenOrientation.unlockAsync();
+      }
     };
   }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Text style={styles.title}>{title}</Text>
-
-        <VideoView
-          player={pl}
-          nativeControls
-          allowsPictureInPicture
-          style={styles.video}
-        />
-      </View>
+      <VideoPlayer title={title} uri={uri} onBack={backToList} />
     </SafeAreaView>
   );
 };
