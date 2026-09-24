@@ -1,12 +1,11 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect } from "react";
-import { Platform, View } from "react-native";
+import { Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import * as ScreenOrientation from "expo-screen-orientation";
 
 import VideoPlayer from "@/components/player/Player";
-import styles from "./player.styles";
 
 type PlayerParams = {
   title: string;
@@ -47,7 +46,7 @@ const player = () => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView className="flex-1 bg-black">
       <VideoPlayer title={title} uri={uri} onBack={backToList} />
     </SafeAreaView>
   );
