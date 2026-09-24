@@ -3,6 +3,9 @@ import { VideoView, useVideoPlayer } from "expo-video";
 import { useEffect } from "react";
 import { Platform, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import * as ScreenOrientation from "expo-screen-orientation";
+
 import styles from "./player.styles";
 
 type PlayerParams = {
@@ -23,6 +26,14 @@ const player = () => {
       }
     };
   }, [uri]);
+
+  useEffect(() => {
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+
+    return () => {
+      ScreenOrientation.unlockAsync();
+    };
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
