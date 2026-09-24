@@ -72,7 +72,7 @@ export default function App() {
       setSelectedVideoIdx(index);
       router.push({
         pathname: "/player",
-        params: { title: video.name, uri },
+        params: { title: video.name, uri: encodeURIComponent(uri) },
       });
     } catch (error) {
       console.error(error);
