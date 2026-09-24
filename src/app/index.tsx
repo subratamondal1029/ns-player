@@ -87,6 +87,7 @@ export default function App() {
           {Platform.OS == "web" && (
             // solve web user interactivity issue for auto load dir
             // TODO: show when dir exist in storage
+            // FIXME: load dir automatically without confirmation on android
             <ConfirmDialog
               message="Do you wanted to load previous session?"
               visible={visible}
