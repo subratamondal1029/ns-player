@@ -1,33 +1,40 @@
-import { Modal, Platform, Pressable, Text, View } from "react-native";
+import { Dispatch, SetStateAction } from "react";
+import { Modal, Pressable, Text, View } from "react-native";
 import styles from "./dialog.styles";
 
 type ConfirmDialogProps = {
+  message: string;
   visible: boolean;
-  onCancel: () => void;
+  setVisible: Dispatch<SetStateAction<boolean>>;
+  onCancel?: () => void;
   onConfirm: () => void;
 };
 
 export default function ConfirmDialog({
+  message,
   visible,
+  setVisible,
   onCancel,
   onConfirm,
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
-    if (Platform.OS === "web") {
-      console.log("Is app ready", navigator.userActivation?.isActive);
-    }
-
+    setVisible(false);
     onConfirm();
+  };
+
+  const handleCancel = () => {
+    setVisible(false);
+    onCancel?.();
   };
 
   return (
     <Modal transparent visible={visible} animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.dialog}>
-          <Text style={styles.title}>Are you sure?</Text>
+          <Text style={styles.title}>{message}</Text>
 
           <View style={styles.actions}>
-            <Pressable onPress={onCancel} style={styles.button}>
+            <Pressable onPress={handleCancel} style={styles.button}>
               <Text>Cancel</Text>
             </Pressable>
 
