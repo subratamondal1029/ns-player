@@ -21,8 +21,14 @@ const getVideoUri = async (
   videoName: string,
 ): Promise<string | null> => {
   try {
-    const file = new File(dir, videoName);
-    if (!file.exists) return null;
+    const files = dir.list();
+
+    const file = files.find(
+      (f) => f instanceof File && f.name === videoName,
+    ) as File | undefined;
+
+    if (!file) return null;
+
     return file.uri;
   } catch (error) {
     throw new Error("Failed to retrieve video URI", { cause: error });
