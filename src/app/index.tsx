@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import VideoList from "@/components/VideoList";
@@ -15,10 +15,12 @@ import styles from "./index.styles";
 
 export default function App() {
   const [visible, setVisible] = useState<boolean>(true);
+
   const [playlist, setPlaylist] = useState<string>("");
   const [dir, setDir] = useState<Dir | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  
   const [selectedVideoIdx, setSelectedVideoIdx] = useState<number>(0);
 
   const selectVideos = async (fresh: boolean = false) => {
@@ -32,8 +34,7 @@ export default function App() {
         playlistName = "new_playlist";
       } else {
         const tempDir = await loadDir();
-        //FIXME: need user interaction for requites permission (load failed in initial request)
-        // NOTE: create a confirm dialog and ask if user wanted to load the previous session
+
         if (!tempDir) {
           dir = await pickDir();
           playlistName = "new_playlist";
@@ -75,28 +76,23 @@ export default function App() {
         params: { title: video.name, uri: encodeURIComponent(uri) },
       });
     } catch (error) {
-      console.error(error);
       alert((error as Error).message || "Failed to open video player");
     }
   };
-
-  // useEffect(() => {
-  //   selectVideos(false);
-  // }, []);
 
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
-          {/* NOTE: testing for ConfirmDialog */}
-          <ConfirmDialog
-            visible={visible}
-            onCancel={() => setVisible(false)}
-            onConfirm={() => {
-              setVisible(false);
-              selectVideos(false);
-            }}
-          />
+          {Platform.OS == "web" && (
+            // solve web user interactivity issue for auto load dir
+            <ConfirmDialog
+              message="Do you wanted to load previous session?"
+              visible={visible}
+              setVisible={setVisible}
+              onConfirm={() => selectVideos(false)}
+            />
+          )}
           <Text style={styles.title}>{dir?.name}</Text>
 
           <View style={styles.topButtons}>
