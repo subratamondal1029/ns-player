@@ -1,60 +1,83 @@
-import { ActivityIndicator, Platform, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Platform,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 import VideoList from "@/components/VideoList";
 import ConfirmDialog from "@/components/dialogs/Confirm";
-import { pickDir } from "@/services/folderPicker/picker";
+import UploadDialog from "@/components/dialogs/Upload";
 import { loadDir, saveDir } from "@/services/storage/storage";
 import { findVideos, getVideoUri } from "@/services/video/video";
 import type { Dir, Video } from "@/types/video.type";
 import { decodePlaylistName } from "@/utils/playlistName";
 import { sortVideos } from "@/utils/sortVideos";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function App() {
   const [visible, setVisible] = useState<boolean>(true);
+  const [showPicker, setShowPicker] = useState<boolean>(false);
 
   const [playlist, setPlaylist] = useState<string>("");
   const [dir, setDir] = useState<Dir | null>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  
+
   const [selectedVideoIdx, setSelectedVideoIdx] = useState<number>(0);
 
-  const selectVideos = async (fresh: boolean = false) => {
+  const loadVideos = async (dir: Dir) => {
     try {
       setLoading(true);
-      let dir: Dir;
-      let playlistName: string;
-
-      if (fresh) {
-        dir = await pickDir();
-        playlistName = "new-playlist";
-      } else {
-        const tempDir = await loadDir();
-
-        if (!tempDir) {
-          dir = await pickDir();
-          playlistName = "new-playlist";
-        } else {
-          dir = tempDir.dir;
-          playlistName = tempDir.playlist;
-        }
-      }
-
-      setDir(dir);
-      setPlaylist(playlistName);
-
-      await saveDir(dir, playlistName);
-
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
     } catch (error) {
       console.error(error);
-      alert((error as Error).message || "Failed to select videos");
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: (error as Error).message || "Failed to get videos",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadExistingDir = async () => {
+    try {
+      const dirData = await loadDir();
+      if (!dirData) return;
+
+      setDir(dirData.dir);
+      setPlaylist(dirData.playlist);
+      loadVideos(dirData.dir);
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: (error as Error).message || "Failed to load existing directory",
+      });
+    }
+  };
+
+  const handleUpload = async (dir: Dir, playlist: string) => {
+    try {
+      await saveDir(dir, playlist);
+      setDir(dir);
+      setPlaylist(playlist);
+      loadVideos(dir);
+    } catch (error) {
+      console.error(error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: (error as Error).message || "Failed to upload videos",
+      });
     }
   };
 
@@ -79,6 +102,12 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      loadExistingDir();
+    }
+  }, []);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView className="flex-1 bg-neutral-950">
@@ -88,9 +117,15 @@ export default function App() {
               message="Do you want to load previous session?"
               visible={visible}
               setVisible={setVisible}
-              onConfirm={() => selectVideos(false)}
+              onConfirm={loadExistingDir}
             />
           )}
+
+          <UploadDialog
+            visible={showPicker}
+            setVisible={setShowPicker}
+            upload={handleUpload}
+          />
 
           {/* Header */}
           <View className="mb-6 items-center">
@@ -107,17 +142,21 @@ export default function App() {
           {/* Action Buttons */}
           <View className="flex-row gap-3 mb-4">
             <Pressable
-              onPress={() => selectVideos(true)}
+              onPress={() => setShowPicker(true)}
               className="flex-1 py-3.5 px-4 rounded-xl bg-blue-600 active:bg-blue-500 items-center justify-center shadow-sm"
             >
-              <Text className="text-white text-base font-semibold">Select Folder</Text>
+              <Text className="text-white text-base font-semibold">
+                Select Folder
+              </Text>
             </Pressable>
 
             <Pressable
-              onPress={() => selectVideos(false)}
+              // onPress={() => selectVideos(false)}
               className="py-3.5 px-6 rounded-xl bg-neutral-900 border border-neutral-800 active:bg-neutral-800 items-center justify-center"
             >
-              <Text className="text-neutral-200 text-base font-medium">Sync</Text>
+              <Text className="text-neutral-200 text-base font-medium">
+                Sync
+              </Text>
             </Pressable>
           </View>
 
@@ -128,14 +167,18 @@ export default function App() {
                 onPress={() => openPlayer(selectedVideoIdx)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-800 active:bg-neutral-700 items-center justify-center border border-neutral-700"
               >
-                <Text className="text-neutral-100 text-sm font-semibold">Continue</Text>
+                <Text className="text-neutral-100 text-sm font-semibold">
+                  Continue
+                </Text>
               </Pressable>
 
               <Pressable
                 onPress={() => openPlayer(0)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-900 active:bg-neutral-800 items-center justify-center border border-neutral-800"
               >
-                <Text className="text-neutral-300 text-sm font-medium">Start Over</Text>
+                <Text className="text-neutral-300 text-sm font-medium">
+                  Start Over
+                </Text>
               </Pressable>
             </View>
           )}
@@ -145,7 +188,9 @@ export default function App() {
             {loading ? (
               <View className="flex-1 items-center justify-center py-16 gap-3">
                 <ActivityIndicator size="large" color="#3b82f6" />
-                <Text className="text-neutral-400 text-sm font-medium">Loading playlist...</Text>
+                <Text className="text-neutral-400 text-sm font-medium">
+                  Loading playlist...
+                </Text>
               </View>
             ) : videos.length > 0 ? (
               <VideoList
@@ -155,7 +200,9 @@ export default function App() {
               />
             ) : (
               <View className="flex-1 items-center justify-center py-16 border border-dashed border-neutral-800/80 rounded-2xl p-8 bg-neutral-900/20">
-                <Text className="text-neutral-300 text-lg font-semibold mb-1">No videos loaded</Text>
+                <Text className="text-neutral-300 text-lg font-semibold mb-1">
+                  No videos loaded
+                </Text>
                 <Text className="text-neutral-500 text-sm text-center">
                   Select a folder containing video files to get started.
                 </Text>
