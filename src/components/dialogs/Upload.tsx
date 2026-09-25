@@ -25,11 +25,13 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
   const handleConfirm = () => {
     if (playlist && dir) {
       upload(dir, playlist);
+
+      setPlaylist("");
+      setDir(null);
+      setVisible(false);
     } else {
       setError("Please fill in all fields");
-      return;
     }
-    setVisible(false);
   };
 
   const handlePickPlaylist = async () => {
