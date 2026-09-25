@@ -11,6 +11,7 @@ type Timestamp = {
 type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
+  lastPlayedVideoIdx: (playlist: string) => number;
 };
 
 const TimestampContext = createContext<TTimestampContext | null>(null);
@@ -61,9 +62,15 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const lastPlayedVideoIdx = (playlist: string) => {
+    if (!timestamp || timestamp.playlist !== playlist) return -1;
+    if (timestamp.videos.length === 0) return 0;
+    return timestamp.videos[timestamp.videos.length - 1].index;
+  };
+
   return (
     <TimestampContext.Provider
-      value={{ getTimestamp, setTimestamp: saveTimestamp }}
+      value={{ getTimestamp, setTimestamp: saveTimestamp, lastPlayedVideoIdx }}
     >
       {children}
     </TimestampContext.Provider>
