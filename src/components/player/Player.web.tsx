@@ -5,9 +5,14 @@ import { Pressable, StatusBar, Text, View } from "react-native";
 type VideoPlayerProps = {
   uri: string;
   title: string;
+  playlist: string;
   onBack: () => void;
+  onPlayPause: () => void;
+  onSkip: (timestamp: number) => void;
+  onNext: () => void;
+  onPrevious: () => void;
+  onVolumeChange: (volume: number) => void;
 };
-
 export default function VideoPlayer({ uri, title, onBack }: VideoPlayerProps) {
   const videoRef = useRef<VideoView>(null);
 
