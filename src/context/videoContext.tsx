@@ -22,6 +22,12 @@ const VideoProvider = ({ children }: { children: React.ReactNode }) => {
     setCurrentVideoIdx(index);
   };
 
+  const playNow = (index: number) => {
+    if (index >= 0 && index < videos.length) {
+      setCurrentVideoIdx(index);
+    }
+  };
+
   const hasNext = () => {
     return currentVideoIdx < videos.length - 1;
   };
@@ -46,6 +52,7 @@ const VideoProvider = ({ children }: { children: React.ReactNode }) => {
     <VideoContext.Provider
       value={{
         videos,
+        playNow,
         setVideos: storeVideos,
         currentVideoIdx,
         hasNext,
