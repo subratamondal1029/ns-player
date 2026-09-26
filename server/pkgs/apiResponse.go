@@ -6,10 +6,10 @@ import (
 )
 
 type ApiResponse struct {
-	Success bool
-	Status  int
-	Message string
-	Data    any
+	Success bool   `json:"success"`
+	Status  int    `json:"status"`
+	Message string `json:"message"`
+	Data    any    `json:"data"`
 }
 
 func SendResponse(w http.ResponseWriter, response ApiResponse) {
