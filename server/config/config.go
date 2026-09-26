@@ -40,7 +40,7 @@ func init() {
 
 	if err != nil {
 		if os.IsNotExist(err) {
-			if err := os.WriteFile(timestampStatePath, []byte{}, 0644); err != nil {
+			if err := os.WriteFile(timestampStatePath, []byte("{}"), 0644); err != nil {
 				log.Panicf("Can't create timestamp file, %v", err)
 			}
 		} else {
