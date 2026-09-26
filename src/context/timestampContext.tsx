@@ -1,5 +1,9 @@
+import {
+  loadTimestampState,
+  saveTimestampState,
+} from "@/services/storage/storage";
 import { Timestamp } from "@/types/timestamp.types";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
@@ -11,6 +15,7 @@ const TimestampContext = createContext<TTimestampContext | null>(null);
 
 const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   const [timestamp, setTimestamp] = useState<Timestamp | null>(null);
+  const readForStorage = useRef<boolean>(false);
 
   const getTimestamp = (playlist: string, index: number) => {
     if (!timestamp) return 0;
@@ -19,6 +24,7 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const saveTimestamp = (playlist: string, index: number, tsp: number) => {
+    readForStorage.current = true;
     if (!timestamp || timestamp.playlist !== playlist) {
       // create new
       setTimestamp({
@@ -60,6 +66,28 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     if (timestamp.videos.length === 0) return 0;
     return timestamp.videos[timestamp.videos.length - 1].index;
   };
+
+  useEffect(() => {
+    const loadTimestamp = async () => {
+      try {
+        const data = await loadTimestampState();
+        if (data) {
+          setTimestamp(data);
+        }
+      } catch (error) {
+        console.error("Error loading timestamp:", error);
+      }
+    };
+
+    loadTimestamp();
+  }, []);
+
+  useEffect(() => {
+    // update in storage
+    if (readForStorage.current && timestamp) {
+      saveTimestampState(timestamp);
+    }
+  }, [timestamp]);
 
   return (
     <TimestampContext.Provider
