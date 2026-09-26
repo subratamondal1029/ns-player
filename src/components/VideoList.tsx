@@ -26,7 +26,7 @@ export default function VideoList({
             onPress={() => play(index)}
             className={`w-full flex-row items-center justify-between p-4 rounded-xl border ${
               isCurrent
-                ? "bg-neutral-900 border-blue-500/60 shadow-lg shadow-blue-500/10"
+                ? "bg-neutral-900 border-blue-500/60"
                 : "bg-neutral-900/60 border-neutral-800/80 active:bg-neutral-800/70"
             }`}
           >
@@ -59,7 +59,9 @@ export default function VideoList({
 
             {isCurrent && (
               <View className="px-2.5 py-1 rounded-full bg-blue-500/20 border border-blue-500/30">
-                <Text className="text-xs font-semibold text-blue-400">Continue</Text>
+                <Text className="text-xs font-semibold text-blue-400">
+                  Continue
+                </Text>
               </View>
             )}
           </Pressable>
