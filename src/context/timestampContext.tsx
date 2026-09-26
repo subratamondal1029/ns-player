@@ -1,12 +1,5 @@
+import { Timestamp } from "@/types/timestamp.types";
 import { createContext, useContext, useState } from "react";
-
-type Timestamp = {
-  playlist: string;
-  videos: {
-    index: number;
-    timestamp: number;
-  }[];
-};
 
 type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
