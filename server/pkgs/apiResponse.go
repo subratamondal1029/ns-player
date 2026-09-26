@@ -6,6 +6,7 @@ import (
 )
 
 type ApiResponse struct {
+	Success bool
 	Status  int
 	Message string
 	Data    any
@@ -14,6 +15,10 @@ type ApiResponse struct {
 func SendResponse(w http.ResponseWriter, response ApiResponse) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.Status)
+
+	if response.Status < 300 {
+		response.Success = true
+	}
 
 	// Encode the response as JSON and write it to the response writer
 	if err := json.NewEncoder(w).Encode(response); err != nil {
