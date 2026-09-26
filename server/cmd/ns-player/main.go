@@ -18,6 +18,7 @@ func main() {
 	mux.HandleFunc("GET /api/health", handler.Health)
 	mux.HandleFunc("POST /api/timestamp", handler.StoreTimestamp)
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
+	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
 
 	// middleware
 	handler := middleware.CORSMiddleware(mux)
