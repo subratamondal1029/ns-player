@@ -48,7 +48,8 @@ export default function VideoPlayer({
 
     const playerStatusChangeEvent = player.addListener("statusChange", (e) => {
       if (e.status === "readyToPlay") {
-        player.currentTime = timestamp; //FIXME: facing problem on skip starting from 0
+        player.currentTime = timestamp;
+        playerStatusChangeEvent.remove();
       }
     });
 
