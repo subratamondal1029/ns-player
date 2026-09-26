@@ -15,6 +15,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Handlers
+	mux.HandleFunc("GET /api/health", handler.Health)
 	mux.HandleFunc("POST /api/timestamp", handler.StoreTimestamp)
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
 
