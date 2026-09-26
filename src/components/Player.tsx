@@ -1,6 +1,6 @@
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect, useRef } from "react";
-import { Pressable, StatusBar, Text, View } from "react-native";
+import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 
 type VideoPlayerProps = {
   uri: string;
@@ -70,7 +70,7 @@ export default function VideoPlayer({
       {/* TODO: create custom UI for video controls */}
       <VideoView
         ref={videoRef}
-        className="w-full h-full"
+        style={styles.video}
         player={player}
         nativeControls={true}
         contentFit="contain"
@@ -98,3 +98,8 @@ export default function VideoPlayer({
     </View>
   );
 }
+
+// expo-video black screen issue in React Native Wind resolve
+const styles = StyleSheet.create({
+  video: { width: "100%", height: "100%" },
+});
