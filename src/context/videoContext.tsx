@@ -5,6 +5,7 @@ type TVideoContext = {
   videos: Video[];
   setVideos: (videos: Video[], index?: number) => void;
   currentVideoIdx: number;
+  playNow: (index: number) => void;
   hasNext: () => boolean;
   hasPrev: () => boolean;
   next: () => void;
@@ -77,4 +78,3 @@ const useVideo = () => {
 };
 
 export { useVideo, VideoProvider };
-
