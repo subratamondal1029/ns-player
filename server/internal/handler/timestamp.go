@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/subratamondal1029/ns-player/internal/service"
@@ -49,7 +48,6 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 
 	timestamp, err := service.GetTimestamp(playlist)
 	if err != nil {
-		fmt.Printf("Timestamp Reading failed: %v", err)
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to get timestamp",
