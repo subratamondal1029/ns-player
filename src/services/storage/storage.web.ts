@@ -1,4 +1,10 @@
-import { DB_NAME, DIR_STORE_KEY, DIR_STORE_NAME } from "@/constants";
+import {
+  DB_NAME,
+  DIR_STORE_KEY,
+  DIR_STORE_NAME,
+  SERVER_URL,
+} from "@/constants";
+import { Timestamp } from "@/types/timestamp.types";
 import { openDB } from "idb";
 import { Platform } from "react-native";
 
@@ -76,4 +82,45 @@ const loadDir = async (): Promise<{
   }
 };
 
-export { loadDir, saveDir };
+const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
+  try {
+    const res = await (
+      await fetch(`${SERVER_URL}/timestamp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(timestamp),
+      })
+    ).json();
+
+    if (!res.success) {
+      throw new Error(res.message, { cause: "API_ERROR" });
+    }
+  } catch (error) {
+    throw new Error("Timestamp state save failed", { cause: error });
+  }
+};
+
+const loadTimestampState = async (): Promise<Timestamp | null> => {
+  try {
+    const res = await (
+      await fetch(`${SERVER_URL}/timestamp`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    ).json();
+
+    if (!res.success) {
+      throw new Error(res.message, { cause: "API_ERROR" });
+    }
+
+    return res.data;
+  } catch (error) {
+    throw new Error("Timestamp state load failed", { cause: error });
+  }
+};
+
+export { loadDir, loadTimestampState, saveDir, saveTimestampState };
