@@ -16,7 +16,7 @@ const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   throw new Error(`Timestamp state saving is not supported in ${Platform.OS}`);
 };
 
-const loadTimestampState = async (): Promise<Timestamp | null> => {
+const loadTimestampState = async (playlist: string): Promise<Timestamp | null> => {
   throw new Error(`Timestamp state loading is not supported in ${Platform.OS}`);
 };
 

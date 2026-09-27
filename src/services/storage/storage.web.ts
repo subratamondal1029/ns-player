@@ -102,10 +102,12 @@ const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   }
 };
 
-const loadTimestampState = async (): Promise<Timestamp | null> => {
+const loadTimestampState = async (
+  playlist: string,
+): Promise<Timestamp | null> => {
   try {
     const res = await (
-      await fetch(`${SERVER_URL}/timestamp`, {
+      await fetch(`${SERVER_URL}/timestamp?playlist=${playlist}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -113,7 +115,7 @@ const loadTimestampState = async (): Promise<Timestamp | null> => {
       })
     ).json();
 
-    if (!res.success) {
+    if (!res.ok || !res.success) {
       throw new Error(res.message, { cause: "API_ERROR" });
     }
 
