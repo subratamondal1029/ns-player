@@ -11,9 +11,11 @@ import Toast from "react-native-toast-message";
 import VideoList from "@/components/VideoList";
 import ConfirmDialog from "@/components/dialogs/Confirm";
 import UploadDialog from "@/components/dialogs/Upload";
+import { useTimestamp } from "@/context/timestampContext";
+import { useVideo } from "@/context/videoContext";
 import { loadDir, saveDir } from "@/services/storage/storage";
-import { findVideos, getVideoUri } from "@/services/video/video";
-import type { Dir, Video } from "@/types/video.type";
+import { findVideos } from "@/services/video/video";
+import type { Dir } from "@/types/video.type";
 import { decodePlaylistName } from "@/utils/playlistName";
 import { sortVideos } from "@/utils/sortVideos";
 import { router } from "expo-router";
@@ -25,16 +27,20 @@ export default function App() {
 
   const [playlist, setPlaylist] = useState<string>("");
   const [dir, setDir] = useState<Dir | null>(null);
-  const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const [selectedVideoIdx, setSelectedVideoIdx] = useState<number>(0);
+  const { videos, setVideos, currentVideoIdx, playNow } = useVideo();
+  const { lastPlayedVideoIdx } = useTimestamp();
 
-  const loadVideos = async (dir: Dir) => {
+  const loadVideos = async (dir: Dir, playlist: string) => {
     try {
       setLoading(true);
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
+      const lastPlayedVideo = lastPlayedVideoIdx(playlist);
+      if (lastPlayedVideo !== -1) {
+        playNow(lastPlayedVideo);
+      }
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -54,7 +60,7 @@ export default function App() {
 
       setDir(dirData.dir);
       setPlaylist(dirData.playlist);
-      loadVideos(dirData.dir);
+      loadVideos(dirData.dir, dirData.playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -70,7 +76,7 @@ export default function App() {
       await saveDir(dir, playlist);
       setDir(dir);
       setPlaylist(playlist);
-      loadVideos(dir);
+      loadVideos(dir, playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -88,15 +94,9 @@ export default function App() {
       const video = videos[index];
       if (!video) return;
 
-      const uri = await getVideoUri(dir, video.name);
-      if (!uri) return;
-
       // Open the video player
-      setSelectedVideoIdx(index);
-      router.push({
-        pathname: "/player",
-        params: { title: video.name, uri: encodeURIComponent(uri) },
-      });
+      playNow(index);
+      router.push("/player");
     } catch (error) {
       alert((error as Error).message || "Failed to open video player");
     }
@@ -164,7 +164,7 @@ export default function App() {
           {videos.length > 0 && (
             <View className="flex-row gap-3 mb-5">
               <Pressable
-                onPress={() => openPlayer(selectedVideoIdx)}
+                onPress={() => openPlayer(currentVideoIdx)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-800 active:bg-neutral-700 items-center justify-center border border-neutral-700"
               >
                 <Text className="text-neutral-100 text-sm font-semibold">
@@ -195,7 +195,7 @@ export default function App() {
             ) : videos.length > 0 ? (
               <VideoList
                 videos={videos}
-                continueVideoIdx={selectedVideoIdx}
+                continueVideoIdx={currentVideoIdx}
                 play={openPlayer}
               />
             ) : (

@@ -1,4 +1,8 @@
-import { ASYNC_STORAGE_DIR_KEY } from "@/constants";
+import {
+  ASYNC_STORAGE_DIR_KEY,
+  ASYNC_STORAGE_TIMESTAMP_KEY
+} from "@/constants";
+import { Timestamp } from "@/types/timestamp.types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory } from "expo-file-system";
 
@@ -13,7 +17,10 @@ const saveDir = async (dir: Directory, playlist: string): Promise<void> => {
   }
 };
 
-const loadDir = async (): Promise<{dir: Directory; playlist: string} | null> => {
+const loadDir = async (): Promise<{
+  dir: Directory;
+  playlist: string;
+} | null> => {
   try {
     const dirJson = await AsyncStorage.getItem(ASYNC_STORAGE_DIR_KEY);
 
@@ -26,4 +33,26 @@ const loadDir = async (): Promise<{dir: Directory; playlist: string} | null> => 
   }
 };
 
-export { loadDir, saveDir };
+const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
+  try {
+    await AsyncStorage.setItem(
+      ASYNC_STORAGE_TIMESTAMP_KEY,
+      JSON.stringify(timestamp),
+    );
+  } catch (error) {
+    throw new Error("Timestamp state save failed", { cause: error });
+  }
+};
+const loadTimestampState = async (): Promise<Timestamp | null> => {
+  try {
+    const timestampJson = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_KEY);
+
+    if (timestampJson) {
+      return JSON.parse(timestampJson);
+    } else return null;
+  } catch (error) {
+    throw new Error("Timestamp state load failed", { cause: error });
+  }
+};
+
+export { loadDir, loadTimestampState, saveDir, saveTimestampState };

@@ -1,7 +1,6 @@
+import { Timestamp } from "@/types/timestamp.types";
 import { Directory } from "expo-file-system";
 import { Platform } from "react-native";
-
-// TODO: store playlist key
 
 type Dir = FileSystemDirectoryHandle | Directory;
 
@@ -13,4 +12,12 @@ const loadDir = async (): Promise<{ dir: Dir; playlist: string } | null> => {
   throw new Error(`Directory loading is not supported in ${Platform.OS}`);
 };
 
-export { loadDir, saveDir };
+const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
+  throw new Error(`Timestamp state saving is not supported in ${Platform.OS}`);
+};
+
+const loadTimestampState = async (): Promise<Timestamp | null> => {
+  throw new Error(`Timestamp state loading is not supported in ${Platform.OS}`);
+};
+
+export { loadDir, saveDir, saveTimestampState, loadTimestampState };
