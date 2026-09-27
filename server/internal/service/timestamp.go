@@ -66,19 +66,19 @@ func GetTimestamp(playlist string) (*Timestamp, error) {
 	return &timestamp, nil
 }
 
-func CompareTimestamps(timestamp *Timestamp) (*Timestamp, error) {
+func CompareTimestamps(timestamp *Timestamp) (bool, *Timestamp, error) {
 	existing, err := GetTimestamp(timestamp.Playlist)
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
 
 	if existing.Playlist != timestamp.Playlist {
-		return timestamp, nil
+		return true, timestamp, nil
 	}
 
 	if existing.Previous.Index < timestamp.Previous.Index || existing.Current.Index < timestamp.Current.Index {
-		return timestamp, nil
+		return true, timestamp, nil
 	}
 
-	return existing, nil
+	return false, existing, nil
 }

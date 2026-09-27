@@ -47,13 +47,21 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timestampToStore, err := service.CompareTimestamps(timestamp)
+	updatable, timestampToStore, err := service.CompareTimestamps(timestamp)
 
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to compare timestamps",
 		}, err)
+		return
+	}
+
+	if !updatable {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusNotModified,
+			Message: "timestamp is not updatable",
+		}, nil)
 		return
 	}
 

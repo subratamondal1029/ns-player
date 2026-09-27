@@ -19,13 +19,19 @@ func StartWriterWorker(dataStream <-chan service.Timestamp) {
 			localCopy = timestamp
 		case <-ticker.C:
 			if localCopy.Playlist != "" {
-				timestamp, err := service.CompareTimestamps(&localCopy)
+				updatable, timestampToStore, err := service.CompareTimestamps(&localCopy)
 				if err != nil {
 					fmt.Printf("Error: Failed to compare timestamps for playlist: %s, error: %v\n", localCopy.Playlist, err)
 					continue
 				}
-				fmt.Printf("Saving timestamp for playlist: %s\n", timestamp.Playlist)
-				service.SaveTimestamp(timestamp)
+
+				if !updatable {
+					localCopy = service.Timestamp{}
+					continue
+				}
+
+				fmt.Printf("Saving timestamp for playlist: %s\n", timestampToStore.Playlist)
+				service.SaveTimestamp(timestampToStore)
 				localCopy = service.Timestamp{}
 			}
 		}

@@ -17,7 +17,7 @@ func SendResponse(w http.ResponseWriter, response ApiResponse, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(response.Status)
 
-	if response.Status < 300 {
+	if response.Status < 399 {
 		response.Success = true
 	}
 
