@@ -58,10 +58,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !updatable {
-		pkgs.SendResponse(w, pkgs.ApiResponse{
-			Status:  http.StatusNotModified,
-			Message: "timestamp is not updatable",
-		}, nil)
+		w.WriteHeader(http.StatusNotModified)
 		return
 	}
 
