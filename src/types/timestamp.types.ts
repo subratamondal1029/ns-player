@@ -1,7 +1,10 @@
+type position = {
+  index: number;
+  timestamp: number;
+};
+
 export type Timestamp = {
   playlist: string;
-  videos: {
-    index: number;
-    timestamp: number;
-  }[];
+  previous: position;
+  current: position;
 };

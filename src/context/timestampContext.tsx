@@ -19,8 +19,13 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
 
   const getTimestamp = (playlist: string, index: number) => {
     if (!timestamp) return 0;
-    const video = timestamp.videos.find((v) => v.index === index);
-    return video ? video.timestamp : 0;
+    if (timestamp.current.index === index) {
+      return timestamp.current.timestamp;
+    } else if (timestamp.previous.index === index) {
+      return timestamp.previous.timestamp;
+    } else {
+      return 0;
+    }
   };
 
   const saveTimestamp = (playlist: string, index: number, tsp: number) => {
@@ -29,31 +34,25 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
       // create new
       setTimestamp({
         playlist,
-        videos: [
-          {
-            index,
-            timestamp: tsp,
-          },
-        ],
+        current: {
+          index,
+          timestamp: tsp,
+        },
+        previous: {
+          index: Math.max(0, index - 1),
+          timestamp: 0,
+        },
       });
     } else {
       setTimestamp((prev) => {
         if (!prev) return null;
-        const videoIdx = prev.videos.findIndex((v) => v.index === index);
 
-        if (videoIdx !== -1) {
-          prev.videos[videoIdx].timestamp = tsp;
+        if (prev.current.index === index) {
+          prev.current.timestamp = tsp;
         } else {
-          // max capacity 2
-          if (prev.videos.length > 1) {
-            // remove oldest
-            prev.videos.shift();
-          }
-
-          prev.videos.push({
-            index,
-            timestamp: tsp,
-          });
+          prev.previous = prev.current;
+          prev.current.index = index;
+          prev.current.timestamp = tsp;
         }
 
         return prev;
@@ -63,14 +62,13 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
 
   const lastPlayedVideoIdx = (playlist: string) => {
     if (!timestamp || timestamp.playlist !== playlist) return -1;
-    if (timestamp.videos.length === 0) return 0;
-    return timestamp.videos[timestamp.videos.length - 1].index;
+    return timestamp.current.index;
   };
 
   useEffect(() => {
     const loadTimestamp = async () => {
       try {
-        const data = await loadTimestampState();
+        const data = await loadTimestampState(); //TODO: call this after playlist load
         if (data) {
           setTimestamp(data);
         }
