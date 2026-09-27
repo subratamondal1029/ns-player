@@ -43,3 +43,5 @@ example
 /ios
 /android
 
+build/*
+server/internal/embed/assets/*
