@@ -13,7 +13,8 @@ import (
 
 func GenerateSyncQr(w http.ResponseWriter, r *http.Request) {
 	conf := config.Get()
-	pngBytes, err := qrcode.Encode(conf.Ip, qrcode.Medium, 256)
+	url := fmt.Sprintf("http://%s:%s", conf.Ip, conf.Port)
+	pngBytes, err := qrcode.Encode(url, qrcode.Medium, 256)
 
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
