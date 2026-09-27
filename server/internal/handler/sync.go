@@ -1,12 +1,13 @@
 package handler
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/skip2/go-qrcode"
 	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/internal/service"
+	"github.com/subratamondal1029/ns-player/internal/validator"
 	"github.com/subratamondal1029/ns-player/pkgs"
 )
 
@@ -27,18 +28,26 @@ func GenerateSyncQr(w http.ResponseWriter, r *http.Request) {
 }
 
 func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
-	var timestamp service.Timestamp
+	timestamp, err := service.DecodeTimestampJson(r.Body)
 
-	if err := json.NewDecoder(r.Body).Decode(&timestamp); err != nil {
+	if err != nil {
+		fmt.Printf("ERROR :: SyncTimestamp :: %v", err)
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to decode timestamp",
 		})
 		return
 	}
-	defer r.Body.Close()
 
-	timestampToStore, err := service.CompareTimestamps(&timestamp)
+	if err := validator.ValidateTimestamp(timestamp); err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		})
+		return
+	}
+
+	timestampToStore, err := service.CompareTimestamps(timestamp)
 
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
