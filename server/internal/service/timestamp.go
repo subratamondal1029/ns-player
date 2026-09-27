@@ -17,7 +17,7 @@ type position struct {
 
 type Timestamp struct {
 	Playlist string   `json:"playlist" validate:"required,min=3"`
-	Previous position `json:"previous" validate:"required"`
+	Previous position `json:"previous"`
 	Current  position `json:"current" validate:"required"`
 }
 
