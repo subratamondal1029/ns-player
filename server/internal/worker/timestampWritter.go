@@ -26,6 +26,7 @@ func StartWriterWorker(dataStream <-chan service.Timestamp) {
 				}
 				fmt.Printf("Saving timestamp for playlist: %s\n", timestamp.Playlist)
 				service.SaveTimestamp(timestamp)
+				localCopy = service.Timestamp{}
 			}
 		}
 	}
