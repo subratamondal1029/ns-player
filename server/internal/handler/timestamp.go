@@ -5,8 +5,15 @@ import (
 	"net/http"
 
 	"github.com/subratamondal1029/ns-player/internal/service"
+	"github.com/subratamondal1029/ns-player/internal/worker"
 	"github.com/subratamondal1029/ns-player/pkgs"
 )
+
+var writerWorkerDataChan = make(chan service.Timestamp)
+
+func init() {
+	go worker.StartWriterWorker(writerWorkerDataChan)
+}
 
 func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 	var timestamp service.Timestamp
@@ -20,13 +27,8 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := service.SaveTimestamp(timestamp); err != nil {
-		pkgs.SendResponse(w, pkgs.ApiResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "failed to store timestamp",
-		})
-		return
-	}
+	// send to writer worker
+	writerWorkerDataChan <- timestamp
 
 	pkgs.SendResponse(w, pkgs.ApiResponse{
 		Status:  http.StatusOK,
