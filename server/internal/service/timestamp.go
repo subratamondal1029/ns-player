@@ -80,5 +80,9 @@ func CompareTimestamps(timestamp *Timestamp) (bool, *Timestamp, error) {
 		return true, timestamp, nil
 	}
 
+	if existing.Previous.Timestamp < timestamp.Previous.Timestamp || existing.Current.Timestamp < timestamp.Current.Timestamp {
+		return true, timestamp, nil
+	}
+
 	return false, existing, nil
 }
