@@ -21,6 +21,9 @@ func main() {
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
 	mux.HandleFunc("PUT /api/sync", handler.SyncTimestamp)
 
+	// SPA serve
+	mux.Handle("/", handler.WebHandler())
+
 	// middleware
 	handler := middleware.CORSMiddleware(mux)
 
