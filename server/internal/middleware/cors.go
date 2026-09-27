@@ -14,7 +14,7 @@ func CORSMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Origin", conf.Origin)
 
 		// Allow specific HTTP methods
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
 
 		// Allow specific headers sent by the client
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")

@@ -19,7 +19,7 @@ func main() {
 	mux.HandleFunc("POST /api/timestamp", handler.StoreTimestamp)
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
-	mux.HandleFunc("POST /api/sync", handler.SyncTimestamp)
+	mux.HandleFunc("PUT /api/sync", handler.SyncTimestamp)
 
 	// middleware
 	handler := middleware.CORSMiddleware(mux)
