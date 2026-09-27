@@ -14,14 +14,15 @@ type video struct {
 }
 
 type Timestamp struct {
-	Playlist string  `json:"playlist"`
-	Videos   []video `json:"videos"`
+	Playlist string `json:"playlist"`
+	Previous video  `json:"previous"`
+	Current  video  `json:"current"`
 }
 
-func SaveTimestamp(timestamp Timestamp) error {
+func SaveTimestamp(timestamp *Timestamp) error {
 	conf := config.Get()
 
-	data, err := json.Marshal(timestamp)
+	data, err := json.Marshal(*timestamp)
 	if err != nil {
 		return err
 	}
@@ -44,4 +45,21 @@ func GetTimestamp(playlist string) (*Timestamp, error) {
 	}
 
 	return &timestamp, nil
+}
+
+func CompareTimestamps(timestamp *Timestamp) (*Timestamp, error) {
+	existing, err := GetTimestamp(timestamp.Playlist)
+	if err != nil {
+		return nil, err
+	}
+
+	if existing.Playlist != timestamp.Playlist {
+		return timestamp, nil
+	}
+
+	if existing.Previous.Index < timestamp.Previous.Index || existing.Current.Index < timestamp.Current.Index {
+		return timestamp, nil
+	}
+
+	return existing, nil
 }
