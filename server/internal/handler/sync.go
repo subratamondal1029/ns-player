@@ -19,7 +19,7 @@ func GenerateSyncQr(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "QR code generation failed",
-		})
+		}, err)
 		return
 	}
 
@@ -35,7 +35,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to decode timestamp",
-		})
+		}, err)
 		return
 	}
 
@@ -43,7 +43,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusBadRequest,
 			Message: err.Error(),
-		})
+		}, err)
 		return
 	}
 
@@ -53,7 +53,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to compare timestamps",
-		})
+		}, err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to sync timestamp",
-		})
+		}, err)
 		return
 	}
 
@@ -71,5 +71,5 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusOK,
 		Message: "timestamp saved successfully",
 		Data:    *timestampToStore,
-	})
+	}, nil)
 }

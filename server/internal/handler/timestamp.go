@@ -22,7 +22,7 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to decode timestamp",
-		})
+		}, err)
 		return
 	}
 
@@ -30,7 +30,7 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusBadRequest,
 			Message: err.Error(),
-		})
+		}, err)
 		return
 	}
 
@@ -40,7 +40,7 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 	pkgs.SendResponse(w, pkgs.ApiResponse{
 		Status:  http.StatusOK,
 		Message: "timestamp stored successfully",
-	})
+	}, nil)
 }
 
 func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
@@ -51,7 +51,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusBadRequest,
 			Message: "playlist is required",
-		})
+		}, nil)
 		return
 	}
 
@@ -60,7 +60,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to get timestamp",
-		})
+		}, err)
 		return
 	}
 
@@ -68,7 +68,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusNotFound,
 			Message: "Playlist does not exists",
-		})
+		}, nil)
 		return
 	}
 
@@ -76,5 +76,5 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		Status:  http.StatusOK,
 		Message: "timestamp retrieved successfully",
 		Data:    timestamp,
-	})
+	}, nil)
 }
