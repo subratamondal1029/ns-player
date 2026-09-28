@@ -1,3 +1,5 @@
+import { useTimestamp } from "@/context/timestampContext";
+import { loadTimestampState } from "@/services/storage/storage";
 import { syncTimestamp } from "@/services/sync/sync";
 import { Loader2 } from "lucide-react-native";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -6,17 +8,32 @@ import { Image, Modal, Pressable, Text, View } from "react-native";
 const Sync = ({
   visible,
   setVisible,
+  playlist,
 }: {
   visible: boolean;
   setVisible: Dispatch<SetStateAction<boolean>>;
+  playlist?: string;
 }) => {
+  const { resetTimestamp } = useTimestamp();
   const [uri, setUri] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
-  const onClose = () => {
-    URL.revokeObjectURL(uri);
-    setUri("");
-    setVisible(false);
+  const onClose = async () => {
+    try {
+      if (playlist) {
+        const timestamp = await loadTimestampState(playlist);
+        if (timestamp && timestamp.playlist === playlist) {
+          resetTimestamp(timestamp);
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      alert((error as Error).message || "Failed to sync timestamp");
+    } finally {
+      URL.revokeObjectURL(uri);
+      setUri("");
+      setVisible(false);
+    }
   };
 
   //   cleanup uri

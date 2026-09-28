@@ -4,6 +4,7 @@ import { Platform, Text, View } from "react-native";
 const Sync = ({}: {
   visible: boolean;
   setVisible: Dispatch<SetStateAction<boolean>>;
+  playlist: string
 }) => {
   return (
     <View className="w-full h-full flex items-center justify-center">
