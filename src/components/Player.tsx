@@ -1,6 +1,7 @@
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEffect, useRef } from "react";
-import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { StatusBar, StyleSheet, View } from "react-native";
+import VideoControls from "./controls/Controls";
 
 type VideoPlayerProps = {
   uri: string;
@@ -66,34 +67,18 @@ export default function VideoPlayer({
     <View className="flex-1 w-full h-full bg-black justify-center relative">
       <StatusBar hidden />
 
-      {/* TODO: create custom UI for video controls */}
-      <VideoView
-        ref={videoRef}
-        style={styles.video}
-        player={player}
-        nativeControls={true}
-        contentFit="contain"
-        playsInline
-        allowsPictureInPicture
-        fullscreenOptions={{ enable: true }}
-      />
-
-      {/* Top overlay */}
-      <View className="absolute top-0 left-0 right-0 px-4 pt-4 pb-6 flex-row items-center justify-between bg-black/50">
-        <Pressable onPress={onBack} hitSlop={12} className="w-10 items-start">
-          <Text className="text-white text-3xl font-light leading-9">‹</Text>
-        </Pressable>
-
-        <Text
-          className="flex-1 text-white text-base font-semibold text-center"
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {title}
-        </Text>
-
-        <View className="w-10" />
-      </View>
+      <VideoControls title={title} onBack={onBack}>
+        <VideoView
+          ref={videoRef}
+          style={styles.video}
+          player={player}
+          nativeControls={false}
+          contentFit="contain"
+          playsInline
+          allowsPictureInPicture
+          fullscreenOptions={{ enable: true }}
+        />
+      </VideoControls>
     </View>
   );
 }
