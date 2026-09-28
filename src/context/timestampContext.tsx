@@ -3,6 +3,7 @@ import { Timestamp } from "@/types/timestamp.types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type TTimestampContext = {
+  rawTimestamp: Timestamp | null;
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
   resetTimestamp: (timestamp: Timestamp | null) => void;
@@ -76,6 +77,7 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <TimestampContext.Provider
       value={{
+        rawTimestamp: timestamp,
         getTimestamp,
         setTimestamp: saveTimestamp,
         resetTimestamp,
