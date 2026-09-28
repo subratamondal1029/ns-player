@@ -1,8 +1,14 @@
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft, Circle } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { VideoControlProps } from "./controls.types";
 
-const VideoControls = ({ children, title, onBack }: VideoControlProps) => {
+const VideoControls = ({
+  children,
+  title,
+  onBack,
+  player,
+  progress = 0,
+}: VideoControlProps) => {
   return (
     <View className="w-full h-full flex-1 justify-center items-center relative">
       {children}
@@ -31,10 +37,32 @@ const VideoControls = ({ children, title, onBack }: VideoControlProps) => {
         </Pressable>
 
         {/* main controls */}
-        <View className="w-full h-20 border border-green-500">
-          <Text className="text-white text-base font-semibold text-center my-auto">
-            Main controls
-          </Text>
+        <View className="w-full h-20 border border-green-500 justify-center">
+          {/* progress bar */}
+          <View className="w-full relative items-center justify-center py-2">
+            <Pressable
+              id="bar"
+              // onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+              className="w-11/12 h-1.5 bg-neutral-700 rounded-full relative justify-center"
+            >
+              {/* filled progress */}
+              <View
+                id="progress"
+                className="h-full bg-blue-500 rounded-full"
+                style={{ width: `${progress}%` }}
+              />
+
+              {/* scrubber thumb */}
+              <View
+                className="absolute -top-[5px] -ml-2 pointer-events-none"
+                style={{ left: `${progress}%` }}
+              >
+                <Circle color="#fff" fill="#3b82f6" size={16} />
+              </View>
+            </Pressable>
+          </View>
+
+          <View>{/* controls */}</View>
         </View>
       </View>
     </View>

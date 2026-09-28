@@ -67,7 +67,7 @@ export default function VideoPlayer({
     <View className="flex-1 w-full h-full bg-black justify-center relative">
       <StatusBar hidden />
 
-      <VideoControls title={title} onBack={onBack}>
+      <VideoControls title={title} onBack={onBack} isPlaying={false} progress={50} player={player}>
         <VideoView
           ref={videoRef}
           style={styles.video}
