@@ -5,6 +5,7 @@ import {
   SERVER_URL,
 } from "@/constants";
 import { Timestamp } from "@/types/timestamp.types";
+import { apiFetch } from "@/utils/fetchWrapper";
 import { openDB } from "idb";
 import { Platform } from "react-native";
 
@@ -82,45 +83,55 @@ const loadDir = async (): Promise<{
   }
 };
 
+const checkDirExist = async (): Promise<boolean> => {
+  try {
+    const db = await getDB();
+    const data = await db.get(DIR_STORE_NAME, DIR_STORE_KEY);
+    return data !== undefined;
+  } catch (error) {
+    throw new Error("Failed to check playlist existence", { cause: error });
+  }
+};
+
 const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   try {
-    const res = await (
-      await fetch(`${SERVER_URL}/timestamp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(timestamp),
-      })
-    ).json();
-
-    if (!res.success) {
-      throw new Error(res.message, { cause: "API_ERROR" });
-    }
+    await apiFetch<null>(`${SERVER_URL}/timestamp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(timestamp),
+    });
   } catch (error) {
     throw new Error("Timestamp state save failed", { cause: error });
   }
 };
 
-const loadTimestampState = async (): Promise<Timestamp | null> => {
+const loadTimestampState = async (
+  playlist: string,
+): Promise<Timestamp | null> => {
   try {
-    const res = await (
-      await fetch(`${SERVER_URL}/timestamp`, {
+    const res = await apiFetch<Timestamp>(
+      `${SERVER_URL}/timestamp?playlist=${playlist}`,
+      {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-      })
-    ).json();
+      },
+    );
 
-    if (!res.success) {
-      throw new Error(res.message, { cause: "API_ERROR" });
-    }
-
-    return res.data;
+    return res;
   } catch (error) {
     throw new Error("Timestamp state load failed", { cause: error });
   }
 };
 
-export { loadDir, loadTimestampState, saveDir, saveTimestampState };
+export {
+  checkDirExist,
+  loadDir,
+  loadTimestampState,
+  saveDir,
+  saveTimestampState
+};
+

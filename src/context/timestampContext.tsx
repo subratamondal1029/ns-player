@@ -1,97 +1,86 @@
-import {
-  loadTimestampState,
-  saveTimestampState,
-} from "@/services/storage/storage";
+import { saveTimestampState } from "@/services/storage/storage";
 import { Timestamp } from "@/types/timestamp.types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
-  lastPlayedVideoIdx: (playlist: string) => number;
+  resetTimestamp: (timestamp: Timestamp | null) => void;
+  lastPlayedVideoIdx: number;
 };
 
 const TimestampContext = createContext<TTimestampContext | null>(null);
 
 const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   const [timestamp, setTimestamp] = useState<Timestamp | null>(null);
-  const readForStorage = useRef<boolean>(false);
+  const readyForStorage = useRef<boolean>(false);
 
   const getTimestamp = (playlist: string, index: number) => {
     if (!timestamp) return 0;
-    const video = timestamp.videos.find((v) => v.index === index);
-    return video ? video.timestamp : 0;
+    if (timestamp.current.index === index) {
+      return timestamp.current.timestamp;
+    } else if (timestamp.previous.index === index) {
+      return timestamp.previous.timestamp;
+    } else {
+      return 0;
+    }
   };
 
   const saveTimestamp = (playlist: string, index: number, tsp: number) => {
-    readForStorage.current = true;
+    readyForStorage.current = true;
     if (!timestamp || timestamp.playlist !== playlist) {
       // create new
       setTimestamp({
         playlist,
-        videos: [
-          {
-            index,
-            timestamp: tsp,
-          },
-        ],
+        current: {
+          index,
+          timestamp: tsp,
+        },
+        previous: {
+          index: Math.max(0, index - 1),
+          timestamp: 0,
+        },
       });
     } else {
       setTimestamp((prev) => {
         if (!prev) return null;
-        const videoIdx = prev.videos.findIndex((v) => v.index === index);
 
-        if (videoIdx !== -1) {
-          prev.videos[videoIdx].timestamp = tsp;
-        } else {
-          // max capacity 2
-          if (prev.videos.length > 1) {
-            // remove oldest
-            prev.videos.shift();
-          }
-
-          prev.videos.push({
-            index,
-            timestamp: tsp,
-          });
+        if (prev.current.index === index) {
+          return {
+            ...prev,
+            current: { ...prev.current, timestamp: tsp },
+          };
         }
 
-        return prev;
+        return {
+          ...prev,
+          previous: prev.current,
+          current: { index, timestamp: tsp },
+        };
       });
     }
   };
 
-  const lastPlayedVideoIdx = (playlist: string) => {
-    if (!timestamp || timestamp.playlist !== playlist) return -1;
-    if (timestamp.videos.length === 0) return 0;
-    return timestamp.videos[timestamp.videos.length - 1].index;
+  const resetTimestamp = (timestamp: Timestamp | null) => {
+    readyForStorage.current = false;
+    setTimestamp(timestamp);
   };
 
   useEffect(() => {
-    const loadTimestamp = async () => {
-      try {
-        const data = await loadTimestampState();
-        if (data) {
-          setTimestamp(data);
-        }
-      } catch (error) {
-        console.error("Error loading timestamp:", error);
-      }
-    };
-
-    loadTimestamp();
-  }, []);
-
-  useEffect(() => {
-    // update in storage
-    if (readForStorage.current && timestamp) {
+    console.log("Timestamp: ", timestamp);
+    if (readyForStorage.current && timestamp) {
       saveTimestampState(timestamp);
     }
   }, [timestamp]);
 
   return (
     <TimestampContext.Provider
-      value={{ getTimestamp, setTimestamp: saveTimestamp, lastPlayedVideoIdx }}
+      value={{
+        getTimestamp,
+        setTimestamp: saveTimestamp,
+        resetTimestamp,
+        lastPlayedVideoIdx: timestamp ? timestamp.current.index : -1,
+      }}
     >
       {children}
     </TimestampContext.Provider>

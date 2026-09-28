@@ -1,6 +1,6 @@
 import {
   ASYNC_STORAGE_DIR_KEY,
-  ASYNC_STORAGE_TIMESTAMP_KEY
+  ASYNC_STORAGE_TIMESTAMP_KEY,
 } from "@/constants";
 import { Timestamp } from "@/types/timestamp.types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -33,6 +33,15 @@ const loadDir = async (): Promise<{
   }
 };
 
+const checkDirExist = async (): Promise<boolean> => {
+  try {
+    const dir = await loadDir();
+    return dir !== null;
+  } catch (error) {
+    throw new Error("Failed to check playlist existence", { cause: error });
+  }
+};
+
 const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   try {
     await AsyncStorage.setItem(
@@ -43,16 +52,30 @@ const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
     throw new Error("Timestamp state save failed", { cause: error });
   }
 };
-const loadTimestampState = async (): Promise<Timestamp | null> => {
+const loadTimestampState = async (
+  playlist: string,
+): Promise<Timestamp | null> => {
   try {
-    const timestampJson = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_KEY);
+    const timestampJson = await AsyncStorage.getItem(
+      ASYNC_STORAGE_TIMESTAMP_KEY,
+    );
 
     if (timestampJson) {
-      return JSON.parse(timestampJson);
+      const timestamp = JSON.parse(timestampJson);
+      if (timestamp.playlist === playlist) {
+        return timestamp;
+      } else return null;
     } else return null;
   } catch (error) {
     throw new Error("Timestamp state load failed", { cause: error });
   }
 };
 
-export { loadDir, loadTimestampState, saveDir, saveTimestampState };
+export {
+  checkDirExist,
+  loadDir,
+  loadTimestampState,
+  saveDir,
+  saveTimestampState
+};
+

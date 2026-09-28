@@ -29,7 +29,6 @@ export default function VideoPlayer({
   const player = useVideoPlayer(uri);
 
   useEffect(() => {
-    console.log(`Initial timestamp: ${timestamp}`);
     const playingChangeEvent = player.addListener("playingChange", (e) => {
       if (!e.isPlaying) {
         setTimestamp(player.currentTime);

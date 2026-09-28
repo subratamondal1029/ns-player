@@ -13,7 +13,12 @@ import ConfirmDialog from "@/components/dialogs/Confirm";
 import UploadDialog from "@/components/dialogs/Upload";
 import { useTimestamp } from "@/context/timestampContext";
 import { useVideo } from "@/context/videoContext";
-import { loadDir, saveDir } from "@/services/storage/storage";
+import {
+  checkDirExist,
+  loadDir,
+  loadTimestampState,
+  saveDir,
+} from "@/services/storage/storage";
 import { findVideos } from "@/services/video/video";
 import type { Dir } from "@/types/video.type";
 import { decodePlaylistName } from "@/utils/playlistName";
@@ -22,25 +27,29 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
 export default function App() {
-  const [visible, setVisible] = useState<boolean>(true);
+  const [lastSessionLoadConfirm, setLastSessionLoadConfirm] =
+    useState<boolean>(false);
   const [showPicker, setShowPicker] = useState<boolean>(false);
 
   const [playlist, setPlaylist] = useState<string>("");
   const [dir, setDir] = useState<Dir | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { videos, setVideos, currentVideoIdx, playNow } = useVideo();
-  const { lastPlayedVideoIdx } = useTimestamp();
+  const { videos, setVideos, playNow } = useVideo();
+  const { lastPlayedVideoIdx, resetTimestamp } = useTimestamp();
+
+  const saveLocalState = (dir: Dir, playlist: string) => {
+    setDir(dir);
+    setPlaylist(playlist);
+    loadTimestamp(playlist);
+    loadVideos(dir, playlist);
+  };
 
   const loadVideos = async (dir: Dir, playlist: string) => {
     try {
       setLoading(true);
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
-      const lastPlayedVideo = lastPlayedVideoIdx(playlist);
-      if (lastPlayedVideo !== -1) {
-        playNow(lastPlayedVideo);
-      }
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -53,14 +62,28 @@ export default function App() {
     }
   };
 
+  const loadTimestamp = async (playlist: string) => {
+    try {
+      const data = await loadTimestampState(playlist);
+      if (data) {
+        resetTimestamp(data);
+      }
+    } catch (error) {
+      Toast.show({
+        type: "info",
+        text1: "Warning",
+        text2: (error as Error).message || "Failed to load timestamp",
+        visibilityTime: 4000,
+      });
+    }
+  };
+
   const loadExistingDir = async () => {
     try {
       const dirData = await loadDir();
       if (!dirData) return;
 
-      setDir(dirData.dir);
-      setPlaylist(dirData.playlist);
-      loadVideos(dirData.dir, dirData.playlist);
+      saveLocalState(dirData.dir, dirData.playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -74,9 +97,7 @@ export default function App() {
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
       await saveDir(dir, playlist);
-      setDir(dir);
-      setPlaylist(playlist);
-      loadVideos(dir, playlist);
+      saveLocalState(dir, playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -94,6 +115,7 @@ export default function App() {
       const video = videos[index];
       if (!video) return;
 
+      // FIXME: reset the timestamp for start over
       // Open the video player
       playNow(index);
       router.push("/player");
@@ -102,8 +124,32 @@ export default function App() {
     }
   };
 
+  const startOver = () => {
+    resetTimestamp(null);
+    openPlayer(0);
+  };
+
   useEffect(() => {
-    if (Platform.OS !== "web") {
+    const checkExistsAndShowConfirm = async () => {
+      try {
+        const exists = await checkDirExist();
+        if (exists) {
+          setLastSessionLoadConfirm(true);
+        }
+      } catch (error) {
+        console.error(error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2:
+            (error as Error).message || "Failed to check directory existence",
+        });
+      }
+    };
+
+    if (Platform.OS === "web") {
+      checkExistsAndShowConfirm();
+    } else {
       loadExistingDir();
     }
   }, []);
@@ -114,9 +160,9 @@ export default function App() {
         <View className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-4">
           {Platform.OS === "web" && (
             <ConfirmDialog
-              message="Do you want to load previous session?"
-              visible={visible}
-              setVisible={setVisible}
+              message="Do you want to load the previous session?"
+              visible={lastSessionLoadConfirm}
+              setVisible={setLastSessionLoadConfirm}
               onConfirm={loadExistingDir}
             />
           )}
@@ -164,7 +210,7 @@ export default function App() {
           {videos.length > 0 && (
             <View className="flex-row gap-3 mb-5">
               <Pressable
-                onPress={() => openPlayer(currentVideoIdx)}
+                onPress={() => openPlayer(lastPlayedVideoIdx)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-800 active:bg-neutral-700 items-center justify-center border border-neutral-700"
               >
                 <Text className="text-neutral-100 text-sm font-semibold">
@@ -173,7 +219,7 @@ export default function App() {
               </Pressable>
 
               <Pressable
-                onPress={() => openPlayer(0)}
+                onPress={startOver}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-900 active:bg-neutral-800 items-center justify-center border border-neutral-800"
               >
                 <Text className="text-neutral-300 text-sm font-medium">
@@ -195,7 +241,7 @@ export default function App() {
             ) : videos.length > 0 ? (
               <VideoList
                 videos={videos}
-                continueVideoIdx={currentVideoIdx}
+                continueVideoIdx={lastPlayedVideoIdx}
                 play={openPlayer}
               />
             ) : (
