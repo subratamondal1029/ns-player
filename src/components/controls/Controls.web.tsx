@@ -1,6 +1,6 @@
+import { ChevronLeft } from "lucide-react-native";
 import { Pressable, Text, View } from "react-native";
 import { VideoControlProps } from "./controls.types";
-import { ChevronLeft } from "lucide-react-native";
 
 const VideoControls = ({ children, title, onBack }: VideoControlProps) => {
   return (
@@ -11,9 +11,7 @@ const VideoControls = ({ children, title, onBack }: VideoControlProps) => {
         {/* title & back */}
         <View className="flex-row items-center justify-between w-full h-12 pl-10 border border-blue-500">
           <Pressable onPress={onBack} hitSlop={12} className="w-10 items-start">
-            <Text className="text-white text-3xl font-light leading-9">
-              <ChevronLeft />
-            </Text>
+            <ChevronLeft color="#fff" size={28} />
           </Pressable>
 
           <Text
