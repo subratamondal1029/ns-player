@@ -124,6 +124,11 @@ export default function App() {
     }
   };
 
+  const startOver = () => {
+    resetTimestamp(null);
+    openPlayer(0);
+  };
+
   useEffect(() => {
     const checkExistsAndShowConfirm = async () => {
       try {
@@ -214,7 +219,7 @@ export default function App() {
               </Pressable>
 
               <Pressable
-                onPress={() => openPlayer(0)}
+                onPress={startOver}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-900 active:bg-neutral-800 items-center justify-center border border-neutral-800"
               >
                 <Text className="text-neutral-300 text-sm font-medium">

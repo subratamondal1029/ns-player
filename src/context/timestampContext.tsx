@@ -5,7 +5,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
-  resetTimestamp: (timestamp: Timestamp) => void;
+  resetTimestamp: (timestamp: Timestamp | null) => void;
   lastPlayedVideoIdx: number;
 };
 
@@ -61,11 +61,13 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const resetTimestamp = (timestamp: Timestamp) => {
+  const resetTimestamp = (timestamp: Timestamp | null) => {
+    readyForStorage.current = false;
     setTimestamp(timestamp);
   };
 
   useEffect(() => {
+    console.log("Timestamp: ", timestamp);
     if (readyForStorage.current && timestamp) {
       saveTimestampState(timestamp);
     }
