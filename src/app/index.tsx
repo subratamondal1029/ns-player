@@ -173,7 +173,11 @@ export default function App() {
             setVisible={setShowPicker}
             upload={handleUpload}
           />
-          <Sync visible={syncTimestamp} setVisible={setSyncTimestamp} />
+          <Sync
+            visible={syncTimestamp}
+            setVisible={setSyncTimestamp}
+            playlist={playlist}
+          />
 
           {/* Header */}
           <View className="mb-6 items-center">
