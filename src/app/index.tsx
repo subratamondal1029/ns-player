@@ -14,6 +14,7 @@ import UploadDialog from "@/components/dialogs/Upload";
 import { useTimestamp } from "@/context/timestampContext";
 import { useVideo } from "@/context/videoContext";
 import {
+  checkDirExist,
   loadDir,
   loadTimestampState,
   saveDir,
@@ -26,7 +27,8 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 
 export default function App() {
-  const [visible, setVisible] = useState<boolean>(true);
+  const [lastSessionLoadConfirm, setLastSessionLoadConfirm] =
+    useState<boolean>(false);
   const [showPicker, setShowPicker] = useState<boolean>(false);
 
   const [playlist, setPlaylist] = useState<string>("");
@@ -97,6 +99,7 @@ export default function App() {
       await saveDir(dir, playlist);
       setDir(dir);
       setPlaylist(playlist);
+      loadTimestamp(playlist);
       loadVideos(dir, playlist);
     } catch (error) {
       console.error(error);
@@ -124,7 +127,26 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (Platform.OS !== "web") {
+    const checkExistsAndShowConfirm = async () => {
+      try {
+        const exists = await checkDirExist();
+        if (exists) {
+          setLastSessionLoadConfirm(true);
+        }
+      } catch (error) {
+        console.error(error);
+        Toast.show({
+          type: "error",
+          text1: "Error",
+          text2:
+            (error as Error).message || "Failed to check directory existence",
+        });
+      }
+    };
+
+    if (Platform.OS === "web") {
+      checkExistsAndShowConfirm();
+    } else {
       loadExistingDir();
     }
   }, []);
@@ -135,9 +157,9 @@ export default function App() {
         <View className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 pt-4">
           {Platform.OS === "web" && (
             <ConfirmDialog
-              message="Do you want to load previous session?"
-              visible={visible}
-              setVisible={setVisible}
+              message="Do you want to load the previous session?"
+              visible={lastSessionLoadConfirm}
+              setVisible={setLastSessionLoadConfirm}
               onConfirm={loadExistingDir}
             />
           )}

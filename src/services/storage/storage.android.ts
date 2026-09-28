@@ -33,6 +33,15 @@ const loadDir = async (): Promise<{
   }
 };
 
+const checkDirExist = async (): Promise<boolean> => {
+  try {
+    const dir = await loadDir();
+    return dir !== null;
+  } catch (error) {
+    throw new Error("Failed to check playlist existence", { cause: error });
+  }
+};
+
 const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   try {
     await AsyncStorage.setItem(
@@ -62,4 +71,11 @@ const loadTimestampState = async (
   }
 };
 
-export { loadDir, loadTimestampState, saveDir, saveTimestampState };
+export {
+  checkDirExist,
+  loadDir,
+  loadTimestampState,
+  saveDir,
+  saveTimestampState
+};
+
