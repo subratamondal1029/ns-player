@@ -13,7 +13,11 @@ import ConfirmDialog from "@/components/dialogs/Confirm";
 import UploadDialog from "@/components/dialogs/Upload";
 import { useTimestamp } from "@/context/timestampContext";
 import { useVideo } from "@/context/videoContext";
-import { loadDir, saveDir } from "@/services/storage/storage";
+import {
+  loadDir,
+  loadTimestampState,
+  saveDir,
+} from "@/services/storage/storage";
 import { findVideos } from "@/services/video/video";
 import type { Dir } from "@/types/video.type";
 import { decodePlaylistName } from "@/utils/playlistName";
@@ -30,7 +34,7 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { videos, setVideos, currentVideoIdx, playNow } = useVideo();
-  const { lastPlayedVideoIdx } = useTimestamp();
+  const { lastPlayedVideoIdx, resetTimestamp } = useTimestamp();
 
   const loadVideos = async (dir: Dir, playlist: string) => {
     try {
@@ -53,6 +57,22 @@ export default function App() {
     }
   };
 
+  const loadTimestamp = async (playlist: string) => {
+    try {
+      const data = await loadTimestampState(playlist);
+      if (data) {
+        resetTimestamp(data);
+      }
+    } catch (error) {
+      Toast.show({
+        type: "info",
+        text1: "Warning",
+        text2: (error as Error).message || "Failed to load timestamp",
+        visibilityTime: 4000,
+      });
+    }
+  };
+
   const loadExistingDir = async () => {
     try {
       const dirData = await loadDir();
@@ -60,6 +80,7 @@ export default function App() {
 
       setDir(dirData.dir);
       setPlaylist(dirData.playlist);
+      loadTimestamp(dirData.playlist);
       loadVideos(dirData.dir, dirData.playlist);
     } catch (error) {
       console.error(error);

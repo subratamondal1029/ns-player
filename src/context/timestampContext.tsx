@@ -1,6 +1,5 @@
 import {
-  loadTimestampState,
-  saveTimestampState,
+  saveTimestampState
 } from "@/services/storage/storage";
 import { Timestamp } from "@/types/timestamp.types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
@@ -8,6 +7,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
+  resetTimestamp: (timestamp: Timestamp) => void;
   lastPlayedVideoIdx: (playlist: string) => number;
 };
 
@@ -60,25 +60,14 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const resetTimestamp = (timestamp: Timestamp) => {
+    setTimestamp(timestamp);
+  };
+
   const lastPlayedVideoIdx = (playlist: string) => {
     if (!timestamp || timestamp.playlist !== playlist) return -1;
     return timestamp.current.index;
   };
-
-  useEffect(() => {
-    const loadTimestamp = async () => {
-      try {
-        const data = await loadTimestampState(); //TODO: call this after playlist load
-        if (data) {
-          setTimestamp(data);
-        }
-      } catch (error) {
-        console.error("Error loading timestamp:", error);
-      }
-    };
-
-    loadTimestamp();
-  }, []);
 
   useEffect(() => {
     // update in storage
@@ -89,7 +78,7 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <TimestampContext.Provider
-      value={{ getTimestamp, setTimestamp: saveTimestamp, lastPlayedVideoIdx }}
+      value={{ getTimestamp, setTimestamp: saveTimestamp, resetTimestamp, lastPlayedVideoIdx }}
     >
       {children}
     </TimestampContext.Provider>
