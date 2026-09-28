@@ -1,16 +1,16 @@
-import { SERVER_URL } from "@/constants";
 import { Timestamp } from "@/types/timestamp.types";
 import { apiFetch } from "@/utils/fetchWrapper";
 
 const syncTimestamp = async (
   timestamp: Timestamp,
+  url: string,
 ): Promise<Timestamp | null> => {
   try {
     if (!timestamp) {
       throw new Error("Timestamp is required");
     }
 
-    const res = await apiFetch<Timestamp | null>(`${SERVER_URL}/sync`, {
+    const res = await apiFetch<Timestamp | null>(`${url}/api/sync`, {
       method: "PUT",
       body: JSON.stringify(timestamp),
       headers: {
