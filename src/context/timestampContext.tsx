@@ -1,6 +1,4 @@
-import {
-  saveTimestampState
-} from "@/services/storage/storage";
+import { saveTimestampState } from "@/services/storage/storage";
 import { Timestamp } from "@/types/timestamp.types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
@@ -15,7 +13,7 @@ const TimestampContext = createContext<TTimestampContext | null>(null);
 
 const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   const [timestamp, setTimestamp] = useState<Timestamp | null>(null);
-  const readForStorage = useRef<boolean>(false);
+  const readyForStorage = useRef<boolean>(false);
 
   const getTimestamp = (playlist: string, index: number) => {
     if (!timestamp) return 0;
@@ -29,9 +27,10 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const saveTimestamp = (playlist: string, index: number, tsp: number) => {
-    readForStorage.current = true;
+    readyForStorage.current = true;
     if (!timestamp || timestamp.playlist !== playlist) {
       // create new
+      console.log("Init new timestamp", playlist);
       setTimestamp({
         playlist,
         current: {
@@ -48,14 +47,17 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
         if (!prev) return null;
 
         if (prev.current.index === index) {
-          prev.current.timestamp = tsp;
-        } else {
-          prev.previous = prev.current;
-          prev.current.index = index;
-          prev.current.timestamp = tsp;
+          return {
+            ...prev,
+            current: { ...prev.current, timestamp: tsp },
+          };
         }
 
-        return prev;
+        return {
+          ...prev,
+          previous: prev.current,
+          current: { index, timestamp: tsp },
+        };
       });
     }
   };
@@ -70,15 +72,19 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // update in storage
-    if (readForStorage.current && timestamp) {
+    if (readyForStorage.current && timestamp) {
       saveTimestampState(timestamp);
     }
   }, [timestamp]);
 
   return (
     <TimestampContext.Provider
-      value={{ getTimestamp, setTimestamp: saveTimestamp, resetTimestamp, lastPlayedVideoIdx }}
+      value={{
+        getTimestamp,
+        setTimestamp: saveTimestamp,
+        resetTimestamp,
+        lastPlayedVideoIdx,
+      }}
     >
       {children}
     </TimestampContext.Provider>
