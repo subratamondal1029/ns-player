@@ -5,6 +5,7 @@ import {
   SERVER_URL,
 } from "@/constants";
 import { Timestamp } from "@/types/timestamp.types";
+import { apiFetch } from "@/utils/fetchWrapper";
 import { openDB } from "idb";
 import { Platform } from "react-native";
 
@@ -94,19 +95,13 @@ const checkDirExist = async (): Promise<boolean> => {
 
 const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   try {
-    const res = await (
-      await fetch(`${SERVER_URL}/timestamp`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(timestamp),
-      })
-    ).json();
-
-    if (!res.success) {
-      throw new Error(res.message, { cause: "API_ERROR" });
-    }
+    await apiFetch<null>(`${SERVER_URL}/timestamp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(timestamp),
+    });
   } catch (error) {
     throw new Error("Timestamp state save failed", { cause: error });
   }
@@ -116,20 +111,17 @@ const loadTimestampState = async (
   playlist: string,
 ): Promise<Timestamp | null> => {
   try {
-    const res = await (
-      await fetch(`${SERVER_URL}/timestamp?playlist=${playlist}`, {
+    const res = await apiFetch<Timestamp>(
+      `${SERVER_URL}/timestamp?playlist=${playlist}`,
+      {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-      })
-    ).json();
+      },
+    );
 
-    if (!res.ok || !res.success) {
-      throw new Error(res.message, { cause: "API_ERROR" });
-    }
-
-    return res.data;
+    return res;
   } catch (error) {
     throw new Error("Timestamp state load failed", { cause: error });
   }

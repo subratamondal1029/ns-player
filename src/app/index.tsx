@@ -61,7 +61,9 @@ export default function App() {
 
   const loadTimestamp = async (playlist: string) => {
     try {
+      console.log("Fetching timestamp for playlist:", playlist);
       const data = await loadTimestampState(playlist);
+      console.log("Loaded timestamp:", data);
       if (data) {
         resetTimestamp(data);
       }
@@ -82,6 +84,7 @@ export default function App() {
 
       setDir(dirData.dir);
       setPlaylist(dirData.playlist);
+      console.log("Loading timestamp for playlist:", dirData.playlist);
       loadTimestamp(dirData.playlist);
       loadVideos(dirData.dir, dirData.playlist);
     } catch (error) {
