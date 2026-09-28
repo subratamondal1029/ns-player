@@ -3,7 +3,7 @@ import { createContext, useContext, useState } from "react";
 
 type TVideoContext = {
   videos: Video[];
-  setVideos: (videos: Video[], index?: number) => void;
+  setVideos: (videos: Video[]) => void;
   currentVideoIdx: number;
   playNow: (index: number) => void;
   hasNext: () => boolean;
@@ -17,11 +17,6 @@ const VideoContext = createContext<TVideoContext | null>(null);
 const VideoProvider = ({ children }: { children: React.ReactNode }) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [currentVideoIdx, setCurrentVideoIdx] = useState<number>(0);
-
-  const storeVideos = (videos: Video[], index: number = 0) => {
-    setVideos(videos);
-    setCurrentVideoIdx(index);
-  };
 
   const playNow = (index: number) => {
     if (index >= 0 && index < videos.length) {
@@ -54,7 +49,7 @@ const VideoProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         videos,
         playNow,
-        setVideos: storeVideos,
+        setVideos,
         currentVideoIdx,
         hasNext,
         hasPrev,

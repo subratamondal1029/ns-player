@@ -35,18 +35,21 @@ export default function App() {
   const [dir, setDir] = useState<Dir | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { videos, setVideos, currentVideoIdx, playNow } = useVideo();
+  const { videos, setVideos, playNow } = useVideo();
   const { lastPlayedVideoIdx, resetTimestamp } = useTimestamp();
+
+  const saveLocalState = (dir: Dir, playlist: string) => {
+    setDir(dir);
+    setPlaylist(playlist);
+    loadTimestamp(playlist);
+    loadVideos(dir, playlist);
+  };
 
   const loadVideos = async (dir: Dir, playlist: string) => {
     try {
       setLoading(true);
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
-      const lastPlayedVideo = lastPlayedVideoIdx(playlist);
-      if (lastPlayedVideo !== -1) {
-        playNow(lastPlayedVideo);
-      }
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -61,9 +64,7 @@ export default function App() {
 
   const loadTimestamp = async (playlist: string) => {
     try {
-      console.log("Fetching timestamp for playlist:", playlist);
       const data = await loadTimestampState(playlist);
-      console.log("Loaded timestamp:", data);
       if (data) {
         resetTimestamp(data);
       }
@@ -82,11 +83,7 @@ export default function App() {
       const dirData = await loadDir();
       if (!dirData) return;
 
-      setDir(dirData.dir);
-      setPlaylist(dirData.playlist);
-      console.log("Loading timestamp for playlist:", dirData.playlist);
-      loadTimestamp(dirData.playlist);
-      loadVideos(dirData.dir, dirData.playlist);
+      saveLocalState(dirData.dir, dirData.playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -100,10 +97,7 @@ export default function App() {
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
       await saveDir(dir, playlist);
-      setDir(dir);
-      setPlaylist(playlist);
-      loadTimestamp(playlist);
-      loadVideos(dir, playlist);
+      saveLocalState(dir, playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -121,6 +115,7 @@ export default function App() {
       const video = videos[index];
       if (!video) return;
 
+      // FIXME: reset the timestamp for start over
       // Open the video player
       playNow(index);
       router.push("/player");
@@ -210,7 +205,7 @@ export default function App() {
           {videos.length > 0 && (
             <View className="flex-row gap-3 mb-5">
               <Pressable
-                onPress={() => openPlayer(currentVideoIdx)}
+                onPress={() => openPlayer(lastPlayedVideoIdx)}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-800 active:bg-neutral-700 items-center justify-center border border-neutral-700"
               >
                 <Text className="text-neutral-100 text-sm font-semibold">
@@ -241,7 +236,7 @@ export default function App() {
             ) : videos.length > 0 ? (
               <VideoList
                 videos={videos}
-                continueVideoIdx={currentVideoIdx}
+                continueVideoIdx={lastPlayedVideoIdx}
                 play={openPlayer}
               />
             ) : (

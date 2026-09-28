@@ -6,7 +6,7 @@ type TTimestampContext = {
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
   resetTimestamp: (timestamp: Timestamp) => void;
-  lastPlayedVideoIdx: (playlist: string) => number;
+  lastPlayedVideoIdx: number;
 };
 
 const TimestampContext = createContext<TTimestampContext | null>(null);
@@ -30,7 +30,6 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     readyForStorage.current = true;
     if (!timestamp || timestamp.playlist !== playlist) {
       // create new
-      console.log("Init new timestamp", playlist);
       setTimestamp({
         playlist,
         current: {
@@ -66,11 +65,6 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     setTimestamp(timestamp);
   };
 
-  const lastPlayedVideoIdx = (playlist: string) => {
-    if (!timestamp || timestamp.playlist !== playlist) return -1;
-    return timestamp.current.index;
-  };
-
   useEffect(() => {
     if (readyForStorage.current && timestamp) {
       saveTimestampState(timestamp);
@@ -83,7 +77,7 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
         getTimestamp,
         setTimestamp: saveTimestamp,
         resetTimestamp,
-        lastPlayedVideoIdx,
+        lastPlayedVideoIdx: timestamp ? timestamp.current.index : -1,
       }}
     >
       {children}
