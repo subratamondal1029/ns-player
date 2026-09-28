@@ -95,9 +95,9 @@ const Sync = ({
               </Pressable>
             </View>
           ) : (
-            <View className="flex-1 w-full h-[400px]">
+            <View className="w-full h-80 rounded-xl overflow-hidden bg-black relative">
               <CameraView
-                style={{ flex: 1, width: "100%" }}
+                style={{ width: "100%", height: "100%" }}
                 facing="back"
                 barcodeScannerSettings={{
                   barcodeTypes: ["qr"],
