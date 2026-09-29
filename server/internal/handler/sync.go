@@ -65,6 +65,8 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 			Message: "Timestamp retrieved",
 			Data:    timestamp,
 		}, nil)
+
+		SSEChan <- false
 	case http.MethodPut:
 		// Saving timestamp for Send request
 		timestamp, err := service.DecodeTimestampJson(r.Body)
