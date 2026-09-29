@@ -11,6 +11,7 @@ import Toast from "react-native-toast-message";
 import VideoList from "@/components/VideoList";
 import ConfirmDialog from "@/components/dialogs/Confirm";
 import UploadDialog from "@/components/dialogs/Upload";
+import Sync from "@/components/dialogs/sync/Sync";
 import { useTimestamp } from "@/context/timestampContext";
 import { useVideo } from "@/context/videoContext";
 import {
@@ -30,6 +31,7 @@ export default function App() {
   const [lastSessionLoadConfirm, setLastSessionLoadConfirm] =
     useState<boolean>(false);
   const [showPicker, setShowPicker] = useState<boolean>(false);
+  const [syncTimestamp, setSyncTimestamp] = useState<boolean>(false);
 
   const [playlist, setPlaylist] = useState<string>("");
   const [dir, setDir] = useState<Dir | null>(null);
@@ -115,7 +117,6 @@ export default function App() {
       const video = videos[index];
       if (!video) return;
 
-      // FIXME: reset the timestamp for start over
       // Open the video player
       playNow(index);
       router.push("/player");
@@ -172,6 +173,11 @@ export default function App() {
             setVisible={setShowPicker}
             upload={handleUpload}
           />
+          <Sync
+            visible={syncTimestamp}
+            setVisible={setSyncTimestamp}
+            playlist={playlist}
+          />
 
           {/* Header */}
           <View className="mb-6 items-center">
@@ -197,7 +203,8 @@ export default function App() {
             </Pressable>
 
             <Pressable
-              // onPress={() => selectVideos(false)}
+              disabled={syncTimestamp}
+              onPress={() => setSyncTimestamp(true)}
               className="py-3.5 px-6 rounded-xl bg-neutral-900 border border-neutral-800 active:bg-neutral-800 items-center justify-center"
             >
               <Text className="text-neutral-200 text-base font-medium">

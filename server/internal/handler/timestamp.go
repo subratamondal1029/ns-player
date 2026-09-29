@@ -55,7 +55,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timestamp, err := service.GetTimestamp(playlist)
+	timestamp, err := service.GetTimestamp()
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
