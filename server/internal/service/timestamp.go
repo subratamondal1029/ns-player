@@ -49,7 +49,7 @@ func SaveTimestamp(timestamp *Timestamp) error {
 	return os.WriteFile(filepath.Join(conf.StateDir, "timestamps.json"), data, 0644)
 }
 
-func GetTimestamp(playlist string) (*Timestamp, error) {
+func GetTimestamp() (*Timestamp, error) {
 	conf := config.Get()
 
 	data, err := os.ReadFile(filepath.Join(conf.StateDir, "timestamps.json"))
@@ -64,25 +64,4 @@ func GetTimestamp(playlist string) (*Timestamp, error) {
 	}
 
 	return &timestamp, nil
-}
-
-func CompareTimestamps(timestamp *Timestamp) (bool, *Timestamp, error) {
-	existing, err := GetTimestamp(timestamp.Playlist)
-	if err != nil {
-		return false, nil, err
-	}
-
-	if existing.Playlist != timestamp.Playlist {
-		return true, timestamp, nil
-	}
-
-	if existing.Previous.Index < timestamp.Previous.Index || existing.Current.Index < timestamp.Current.Index {
-		return true, timestamp, nil
-	}
-
-	if existing.Previous.Timestamp < timestamp.Previous.Timestamp || existing.Current.Timestamp < timestamp.Current.Timestamp {
-		return true, timestamp, nil
-	}
-
-	return false, existing, nil
 }
