@@ -118,7 +118,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 			Data:    *timestamp,
 		}, nil)
 
-		// TODO:make sse
+		SSEChan <- true
 	default:
 		http.Error(w, "Invalid Request", http.StatusMethodNotAllowed)
 	}

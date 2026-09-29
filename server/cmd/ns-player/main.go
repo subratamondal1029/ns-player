@@ -21,6 +21,9 @@ func main() {
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
 	mux.HandleFunc("/api/sync", handler.SyncTimestamp) // GET & PUT
 
+	// SSE
+	mux.HandleFunc("GET /api/sync/sse", handler.SyncSSE)
+
 	// SPA serve
 	mux.Handle("/", handler.WebHandler())
 
