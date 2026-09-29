@@ -72,7 +72,12 @@ const Sync = ({
   }, [cameraPermission]);
 
   return (
-    <Modal transparent visible={visible} animationType="fade">
+    <Modal
+      transparent
+      visible={visible}
+      onRequestClose={onClose}
+      animationType="fade"
+    >
       <View className="flex-1 justify-center items-center bg-black/70 p-4">
         <View className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
           {loading ? (
@@ -84,23 +89,29 @@ const Sync = ({
               />
             </View>
           ) : url && scanned && !loading ? (
-            <View className="flex-row justify-center items-center gap-3 h-36">
-              <Pressable
-                onPress={() => synchronize(false)}
-                className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
-              >
-                <Text className="text-sm font-semibold text-white text-center">
-                  Receive
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => synchronize(true)}
-                className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
-              >
-                <Text className="text-sm font-semibold text-white text-center">
-                  Send
-                </Text>
-              </Pressable>
+            <View className="h-36 flex flex-col justify-between items-center">
+              <Text className="text-gray-200 text-xl text-center">
+                Sync{" "}
+                <Text className="text-gray-100 font-semibold">{playlist}</Text>
+              </Text>
+              <View className="flex-row justify-center items-center gap-3">
+                <Pressable
+                  onPress={() => synchronize(false)}
+                  className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
+                >
+                  <Text className="text-sm font-semibold text-white text-center">
+                    Receive
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => synchronize(true)}
+                  className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
+                >
+                  <Text className="text-sm font-semibold text-white text-center">
+                    Send
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           ) : (
             <View className="w-full h-80 rounded-xl overflow-hidden bg-black relative">
