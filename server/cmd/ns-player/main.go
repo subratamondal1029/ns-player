@@ -19,7 +19,7 @@ func main() {
 	mux.HandleFunc("POST /api/timestamp", handler.StoreTimestamp)
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
-	mux.HandleFunc("PUT /api/sync", handler.SyncTimestamp)
+	mux.HandleFunc("/api/sync", handler.SyncTimestamp) // GET & PUT
 
 	// SPA serve
 	mux.Handle("/", handler.WebHandler())
