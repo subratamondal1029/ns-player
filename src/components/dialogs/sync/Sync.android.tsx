@@ -22,7 +22,7 @@ const Sync = ({
   const { rawTimestamp, resetTimestamp } = useTimestamp();
   const [scanned, setScanned] = useState<boolean>(false);
   const [url, setUrl] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
@@ -32,7 +32,7 @@ const Sync = ({
     setVisible(false);
   };
 
-  const fetchTimestamp = async () => {
+  const synchronize = async (isSending: boolean) => {
     try {
       setLoading(true);
       if (!rawTimestamp) {
@@ -40,15 +40,12 @@ const Sync = ({
       }
 
       const timestamp = (await syncTimestamp(
+        isSending,
         rawTimestamp,
         url,
-      )) as Timestamp | null;
-      if (timestamp === null) {
-        alert("Already Synchronized");
-        return;
-      }
+      )) as Timestamp;
 
-      if (timestamp && timestamp.playlist === playlist) {
+      if (timestamp) {
         resetTimestamp(timestamp);
       }
     } catch (error) {
@@ -79,18 +76,29 @@ const Sync = ({
       <View className="flex-1 justify-center items-center bg-black/70 p-4">
         <View className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
           {loading ? (
-            <Loader2 color="#fff" size={28} className="animate-spin mx-auto" />
+            <View className="h-36 flex-1 justify-center items-center">
+              <Loader2
+                color="#fff"
+                size={28}
+                className="animate-spin mx-auto"
+              />
+            </View>
           ) : url && scanned && !loading ? (
-            <View className="flex-col justify-center items-center gap-3">
-              <Text className="text-lg font-medium text-neutral-100 text-center">
-                {url}
-              </Text>
+            <View className="flex-row justify-center items-center gap-3 h-36">
               <Pressable
-                onPress={fetchTimestamp}
-                className="w-full max-w-24 px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
+                onPress={() => synchronize(false)}
+                className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
               >
-                <Text className="text-sm font-semibold text-white">
-                  Confirm
+                <Text className="text-sm font-semibold text-white text-center">
+                  Receive
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => synchronize(true)}
+                className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
+              >
+                <Text className="text-sm font-semibold text-white text-center">
+                  Send
                 </Text>
               </Pressable>
             </View>

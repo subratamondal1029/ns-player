@@ -88,7 +88,7 @@ const Sync = ({
             const timestamp = await loadTimestampState(playlist);
             resetTimestamp(timestamp);
           } catch (error) {
-            console.log(error);
+            console.error(error);
             alert((error as Error).message || "Failed to load timestamp state");
           }
         }
