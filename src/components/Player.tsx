@@ -13,7 +13,14 @@ import {
   SkipForward,
 } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
-import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 type VideoPlayerProps = {
   uri: string;
@@ -73,6 +80,7 @@ export default function VideoPlayer({
     const playerStatusChangeEvent = player.addListener("statusChange", (e) => {
       if (e.status === "readyToPlay") {
         player.currentTime = timestamp;
+        // player.play();
         playerStatusChangeEvent.remove();
       }
     });
@@ -108,22 +116,26 @@ export default function VideoPlayer({
 
         <View className="w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50">
           {/* title & back */}
-          <View className="flex-row items-center justify-between w-full h-12 pl-10 border border-blue-500">
+          <View className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6 border border-blue-500">
             <Pressable
               onPress={onBack}
               hitSlop={12}
-              className="w-10 items-start"
+              className="w-10 h-10 items-center justify-center rounded-full active:bg-white/10"
             >
-              <ChevronLeft color="#fff" size={28} />
+              <Text>
+                <ChevronLeft color="#fff" size={28} />
+              </Text>
             </Pressable>
 
             <Text
-              className="flex-1 text-white text-base font-semibold text-center"
+              className="flex-1 text-neutral-100 text-sm sm:text-base font-medium text-center tracking-wide px-2"
               numberOfLines={1}
               ellipsizeMode="tail"
             >
               {title}
             </Text>
+
+            <View className="w-10" />
           </View>
 
           {/* quick controls */}
@@ -135,17 +147,17 @@ export default function VideoPlayer({
           </Pressable>
 
           {/* main controls */}
-          <View className="w-full h-20 p-2 border border-green-500 justify-between">
+          <View className="w-full pb-4 pt-1 px-4 sm:px-8 border border-green-500 gap-2">
             {/* progress bar */}
-            <View className="w-full flex flex-row justify-between items-center gap-2 ">
-              <Text className="text-gray-100 ">
+            <View className="w-full flex-row items-center justify-between gap-3">
+              <Text className="text-neutral-300 text-xs sm:text-sm font-mono min-w-[45px] text-right">
                 {formatTimestamp(timestamp)}
               </Text>
               <Slider
                 style={{
                   flex: 1,
                   width: "100%",
-                  height: 20,
+                  height: 24,
                   cursor: "pointer",
                 }}
                 minimumValue={0}
@@ -154,70 +166,87 @@ export default function VideoPlayer({
                 value={progress}
                 onValueChange={setProgress}
                 tapToSeek
-                minimumTrackTintColor="#13a3eb" // played
-                maximumTrackTintColor="#6b7280" // unplayed
-                thumbTintColor="#3b82f6"
-                thumbSize={0}
+                minimumTrackTintColor="#3b82f6"
+                maximumTrackTintColor="#52525b"
+                thumbTintColor="#60a5fa"
+                thumbSize={12}
               />
-              <Text className="text-gray-200 ">
-                {formatTimestamp(player.duration)}{" "}
+              <Text className="text-neutral-400 text-xs sm:text-sm font-mono min-w-[45px]">
+                {formatTimestamp(player.duration)}
               </Text>
             </View>
 
-            <View className="flex flex-row justify-between items-center mx-16">
-              <View className="flex flex-row justify-start items-center gap-2">
-                <Pressable className="mr-4">
+            {/* controls buttons */}
+            <View className="flex-row justify-between items-center px-2 sm:px-4">
+              {/* Playback Controls */}
+              <View className="flex-row items-center gap-3 sm:gap-5">
+                <Pressable className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20 active:scale-95">
                   <Text>
                     {isPlaying ? (
-                      <Pause color="#fff" size={25} />
+                      <Pause color="#fff" size={22} />
                     ) : (
-                      <Play color="#fff" size={25} />
+                      <Play color="#fff" size={22} />
                     )}
                   </Text>
                 </Pressable>
 
-                <Pressable className="mr-2" disabled={!hasPrevious}>
+                <Pressable
+                  className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                  disabled={!hasPrevious}
+                >
                   <Text>
                     <SkipBack
-                      color={hasPrevious ? "#fff" : "#6b7280"}
-                      size={25}
+                      color={hasPrevious ? "#fff" : "#52525b"}
+                      size={22}
                     />
                   </Text>
                 </Pressable>
 
-                <Pressable disabled={!hasNext}>
+                <Pressable
+                  className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                  disabled={!hasNext}
+                >
                   <Text>
                     <SkipForward
-                      color={hasNext ? "#fff" : "#6b7280"}
-                      size={25}
+                      color={hasNext ? "#fff" : "#52525b"}
+                      size={22}
                     />
                   </Text>
                 </Pressable>
               </View>
-              <View className="flex flex-row justify-end items-center">
+
+              {/* Utility Controls */}
+              <View className="flex-row items-center gap-2 sm:gap-4">
                 <Pressable
                   disabled={!hasSubtitle}
                   onPress={() => setSubtileEnabled((prev) => !prev)}
+                  className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                 >
                   <Text>
                     {!hasSubtitle ? (
-                      <CaptionsOff color="#6b7280" size={25} />
+                      <CaptionsOff color="#52525b" size={22} />
                     ) : subtileEnabled ? (
-                      <Captions color="#fff" size={25} />
+                      <Captions color="#60a5fa" size={22} />
                     ) : (
-                      <CaptionsOff color="#fff" size={25} />
+                      <CaptionsOff color="#fff" size={22} />
                     )}
                   </Text>
                 </Pressable>
-                <Pressable onPress={() => setFullScreen((prev) => !prev)}>
-                  <Text>
-                    {fullScreen ? (
-                      <Minimize color="#fff" size={25} />
-                    ) : (
-                      <Maximize color="#fff" size={25} />
-                    )}{" "}
-                  </Text>
-                </Pressable>
+
+                {Platform.OS === "web" && (
+                  <Pressable
+                    onPress={() => setFullScreen((prev) => !prev)}
+                    className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                  >
+                    <Text>
+                      {fullScreen ? (
+                        <Minimize color="#fff" size={22} />
+                      ) : (
+                        <Maximize color="#fff" size={22} />
+                      )}
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </View>
           </View>
