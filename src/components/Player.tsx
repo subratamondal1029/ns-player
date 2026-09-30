@@ -150,7 +150,7 @@ export default function VideoPlayer({
           <View className="w-full pb-4 pt-1 px-4 sm:px-8 border border-green-500 gap-2">
             {/* progress bar */}
             <View className="w-full flex-row items-center justify-between gap-3">
-              <Text className="text-neutral-300 text-xs sm:text-sm font-mono min-w-[45px] text-right">
+              <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px] text-right">
                 {formatTimestamp(timestamp)}
               </Text>
               <Slider
@@ -171,7 +171,7 @@ export default function VideoPlayer({
                 thumbTintColor="#60a5fa"
                 thumbSize={12}
               />
-              <Text className="text-neutral-400 text-xs sm:text-sm font-mono min-w-[45px]">
+              <Text className="text-neutral-400 text-xs sm:text-sm font-medium min-w-[45px]">
                 {formatTimestamp(player.duration)}
               </Text>
             </View>
