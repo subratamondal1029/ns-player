@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { NavigationBar } from "expo-navigation-bar";
 import * as ScreenOrientation from "expo-screen-orientation";
 
 import VideoPlayer from "@/components/Player";
@@ -65,13 +66,15 @@ const player = () => {
   }, [currentVideoIdx]);
 
   useEffect(() => {
-    if (Platform.OS !== "web") {
+    if (Platform.OS === "android") {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      NavigationBar.setHidden(true);
     }
 
     return () => {
-      if (Platform.OS !== "web") {
+      if (Platform.OS === "android") {
         ScreenOrientation.unlockAsync();
+        NavigationBar.setHidden(false);
       }
     };
   }, []);
