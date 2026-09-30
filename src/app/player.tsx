@@ -92,6 +92,7 @@ const player = () => {
           playlist={playlist}
           uri={uri}
           timestamp={timestamp}
+          hasSubtitle={true}
           hasNext={hasNext()}
           hasPrevious={hasPrev()}
           setTimestamp={handleTimestampChange}
