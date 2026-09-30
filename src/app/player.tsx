@@ -81,6 +81,7 @@ const player = () => {
 
   const handleTimestampChange = (timestamp: number) => {
     saveTimestamp(playlist, currentVideoIdx, timestamp);
+    setTimestamp(timestamp);
   };
 
   const onVolumeChange = (volume: number) => {
