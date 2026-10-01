@@ -45,6 +45,7 @@ export default function VideoPlayer({
 
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
+  const initialLoad = useRef<boolean>(false);
   const intervalId = useRef<number | null>(null);
 
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
@@ -83,6 +84,11 @@ export default function VideoPlayer({
     }
   };
 
+  const updateTimestamp = (timestamp: number) => {
+    setTimestamp(timestamp);
+    updateHistory(timestamp);
+  };
+
   const onSeek = (value: number) => {
     if (!readyVideo) return;
     const newTimestamp = (value / 100) * player.duration;
@@ -90,18 +96,13 @@ export default function VideoPlayer({
     setTimestamp(newTimestamp);
   };
 
-  const updateTimestamp = (timestamp: number) => {
-    setTimestamp(timestamp);
-    updateHistory(timestamp);
-  };
-
   // initial video load
   useEffect(() => {
     if (status === "readyToPlay" || player.status === "readyToPlay") {
       setReadyVideo(true);
-      if (video.initialTimestamp > 0) {
+      if (!initialLoad.current && video.initialTimestamp > 0) {
         player.currentTime = video.initialTimestamp;
-        setTimestamp(video.initialTimestamp);
+        initialLoad.current = true;
       }
     } else if (status === "loading" || status === "idle") {
       setReadyVideo(false);
@@ -137,6 +138,7 @@ export default function VideoPlayer({
   // uri cleanup
   useEffect(() => {
     return () => {
+      console.log("Player unmount");
       cleanUri(video.uri);
     };
   }, [video.uri]);
