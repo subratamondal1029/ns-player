@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -11,15 +11,13 @@ import { useTimestamp } from "@/context/timestampContext";
 import { useVideo } from "@/context/videoContext";
 import { loadDir } from "@/services/storage/storage";
 import { getVideoUri } from "@/services/video/video";
-import { Video } from "@/types/video.type";
+import { PlayerVideo } from "@/types/player.types";
 
 const player = () => {
   const { videos, currentVideoIdx, hasNext, hasPrev, next, prev } = useVideo();
   const { getTimestamp, setTimestamp: saveTimestamp } = useTimestamp();
-  const [video, setVideo] = useState<Video | null>(null);
+  const [video, setVideo] = useState<PlayerVideo | null>(null);
   const [playlist, setPlaylist] = useState<string>("");
-  const [uri, setUri] = useState<string>("");
-  const [timestamp, setTimestamp] = useState<number>(0);
 
   const backToList = () => {
     if (router.canGoBack()) {
@@ -28,15 +26,6 @@ const player = () => {
       router.push("/");
     }
   };
-
-  useEffect(() => {
-    return () => {
-      if (Platform.OS === "web" && uri) {
-        console.log("Releasing video URI: " + uri);
-        URL.revokeObjectURL(uri);
-      }
-    };
-  }, [uri]);
 
   useEffect(() => {
     const loadVideo = async () => {
@@ -50,14 +39,13 @@ const player = () => {
 
       const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
 
-      if (Platform.OS === "web" && uri) {
-        URL.revokeObjectURL(uri);
-      }
-
-      setTimestamp(timestamp);
-      setVideo(currentVideo);
       setPlaylist(dir.playlist);
-      setUri(playbackUri);
+      setVideo({
+        title: currentVideo.name,
+        uri: playbackUri,
+        initialTimestamp: timestamp,
+        subtitle: null, //TODO: get subtitle then set
+      });
     };
 
     if (currentVideoIdx !== -1) {
@@ -81,29 +69,20 @@ const player = () => {
 
   const handleTimestampChange = (timestamp: number) => {
     saveTimestamp(playlist, currentVideoIdx, timestamp);
-    setTimestamp(timestamp);
-  };
-
-  const onVolumeChange = (volume: number) => {
-    console.log(`OnVolumeChange :: ${volume}`);
   };
 
   return (
     <SafeAreaView className="flex-1 bg-black">
-      {video && uri && (
+      {video && (
         <VideoPlayer
-          title={video.name}
-          playlist={playlist}
-          uri={uri}
-          timestamp={timestamp}
-          hasSubtitle={true}
+          key={video.uri}
+          video={video}
           hasNext={hasNext()}
-          hasPrevious={hasPrev()}
-          setTimestamp={handleTimestampChange}
+          hasPrev={hasPrev()}
           onBack={backToList}
-          onVolumeChange={onVolumeChange}
-          onPrevious={prev}
-          onNext={next}
+          next={next}
+          prev={prev}
+          updateHistory={handleTimestampChange}
         />
       )}
     </SafeAreaView>

@@ -1,5 +1,7 @@
+import { VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
 import Slider from "@react-native-community/slider";
+import { useEvent, useEventListener } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
 import {
   Captions,
@@ -12,7 +14,7 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -23,44 +25,54 @@ import {
   View,
 } from "react-native";
 
-type VideoPlayerProps = {
-  uri: string;
-  title: string;
-  playlist: string;
-  timestamp: number;
-  hasNext: boolean;
-  hasPrevious: boolean;
-  hasSubtitle: boolean;
-  onBack: () => void;
-  setTimestamp: (timestamp: number) => void;
-  onNext: () => void;
-  onPrevious: () => void;
-  onVolumeChange: (volume: number) => void;
+const cleanUri = (uri: string) => {
+  if (Platform.OS !== "web" || !uri) return;
+
+  console.log("Releasing video URI: " + uri);
+  URL.revokeObjectURL(uri);
 };
 
 export default function VideoPlayer({
-  uri,
-  title,
-  timestamp,
-  hasSubtitle,
-  setTimestamp,
-  onBack,
+  video,
   hasNext,
-  hasPrevious,
-  onNext,
-  onPrevious,
+  hasPrev,
+  next,
+  prev,
+  onBack,
+  updateHistory,
 }: VideoPlayerProps) {
+  const player = useVideoPlayer(video.uri);
+
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
   const intervalId = useRef<number | null>(null);
 
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
   const [fullScreen, setFullScreen] = useState<boolean>(false);
-  const [progress, setProgress] = useState<number>(50);
 
-  const player = useVideoPlayer(uri);
+  const [timestamp, setTimestamp] = useState<number>(
+    video.initialTimestamp || 0,
+  );
+  const progress = useMemo(
+    () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
+    [timestamp, player.duration],
+  );
+
+  const { isPlaying } = useEvent(player, "playingChange", {
+    isPlaying: player.playing,
+  });
+  const { status } = useEvent(player, "statusChange", {
+    status: player.status,
+  });
+
+  useEventListener(player, "playToEnd", () => {
+    if (hasNext) {
+      next();
+    } else {
+      onBack();
+    }
+  });
 
   const playPause = () => {
     if (!readyVideo) return;
@@ -78,51 +90,56 @@ export default function VideoPlayer({
     setTimestamp(newTimestamp);
   };
 
+  const updateTimestamp = (timestamp: number) => {
+    setTimestamp(timestamp);
+    updateHistory(timestamp);
+  };
+
+  // initial video load
   useEffect(() => {
-    if (readyVideo) {
-      const progress = (timestamp / player.duration) * 100;
-      setProgress(progress);
+    if (status === "readyToPlay" || player.status === "readyToPlay") {
+      setReadyVideo(true);
+      if (video.initialTimestamp > 0) {
+        player.currentTime = video.initialTimestamp;
+        setTimestamp(video.initialTimestamp);
+      }
+    } else if (status === "loading" || status === "idle") {
+      setReadyVideo(false);
+      console.log("Video is loading or idle");
     }
-  }, [timestamp, readyVideo, player]);
+  }, [status, video.initialTimestamp]);
 
-  // timestamp update
+  // timestamp tracker
   useEffect(() => {
-    const playingChangeEvent = player.addListener("playingChange", (e) => {
-      setIsPlaying(e.isPlaying);
-      if (!e.isPlaying) {
-        setTimestamp(player.currentTime);
-        if (intervalId.current) {
-          clearInterval(intervalId.current);
-          intervalId.current = null;
-        }
-      } else {
-        if (!intervalId.current) {
-          intervalId.current = setInterval(() => {
-            setTimestamp(player.currentTime);
-          }, 1000);
-        }
+    console.log("isPlaying:", isPlaying);
+    if (isPlaying) {
+      if (intervalId.current === null) {
+        intervalId.current = setInterval(() => {
+          updateTimestamp(player.currentTime);
+        }, 1000);
       }
-    });
-
-    const playerStatusChangeEvent = player.addListener("statusChange", (e) => {
-      if (e.status === "readyToPlay") {
-        setReadyVideo(true);
-        player.currentTime = timestamp;
-        // player.play();
-        playerStatusChangeEvent.remove();
+    } else {
+      if (intervalId.current !== null) {
+        clearInterval(intervalId.current);
+        intervalId.current = null;
+        updateTimestamp(player.currentTime);
       }
-    });
+    }
 
     return () => {
-      console.log("Player cleanup"); // did not trigger on video change
-      playingChangeEvent.remove();
-      playerStatusChangeEvent.remove();
-      if (intervalId.current) {
+      if (intervalId.current !== null) {
         clearInterval(intervalId.current);
         intervalId.current = null;
       }
     };
-  }, []);
+  }, [isPlaying, player]);
+
+  // uri cleanup
+  useEffect(() => {
+    return () => {
+      cleanUri(video.uri);
+    };
+  }, [video.uri]);
 
   return (
     <View
@@ -163,7 +180,7 @@ export default function VideoPlayer({
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {title}
+                  {video.title}
                 </Text>
 
                 <View className="w-10" />
@@ -203,7 +220,7 @@ export default function VideoPlayer({
                     thumbSize={12}
                   />
                   <Text className="text-neutral-400 text-xs sm:text-sm font-medium min-w-[45px]">
-                    {formatTimestamp(player.duration)}
+                    {formatTimestamp(player.duration || 0)}
                   </Text>
                 </View>
 
@@ -226,12 +243,12 @@ export default function VideoPlayer({
 
                     <Pressable
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
-                      disabled={!hasPrevious}
-                      onPress={onPrevious}
+                      disabled={!hasPrev}
+                      onPress={prev}
                     >
                       <Text>
                         <SkipBack
-                          color={hasPrevious ? "#fff" : "#52525b"}
+                          color={hasPrev ? "#fff" : "#52525b"}
                           size={22}
                         />
                       </Text>
@@ -240,7 +257,7 @@ export default function VideoPlayer({
                     <Pressable
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                       disabled={!hasNext}
-                      onPress={onNext}
+                      onPress={next}
                     >
                       <Text>
                         <SkipForward
@@ -255,12 +272,12 @@ export default function VideoPlayer({
                   {/* TODO: not implemented yet */}
                   <View className="flex-row items-center gap-2 sm:gap-4">
                     <Pressable
-                      disabled={!hasSubtitle}
+                      disabled={video.subtitle === null}
                       onPress={() => setSubtileEnabled((prev) => !prev)}
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                     >
                       <Text>
-                        {!hasSubtitle ? (
+                        {video.subtitle === null ? (
                           <CaptionsOff color="#52525b" size={22} />
                         ) : subtileEnabled ? (
                           <Captions color="#60a5fa" size={22} />
