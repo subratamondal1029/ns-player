@@ -7,12 +7,10 @@ import {
   Captions,
   CaptionsOff,
   ChevronLeft,
-  Maximize,
-  Minimize,
   Pause,
   Play,
   SkipBack,
-  SkipForward,
+  SkipForward
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -50,7 +48,6 @@ export default function VideoPlayer({
 
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
-  const [fullScreen, setFullScreen] = useState<boolean>(false);
 
   const [timestamp, setTimestamp] = useState<number>(
     video.initialTimestamp || 0,
@@ -288,21 +285,6 @@ export default function VideoPlayer({
                         )}
                       </Text>
                     </Pressable>
-
-                    {Platform.OS === "web" && (
-                      <Pressable
-                        onPress={() => setFullScreen((prev) => !prev)}
-                        className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
-                      >
-                        <Text>
-                          {fullScreen ? (
-                            <Minimize color="#fff" size={22} />
-                          ) : (
-                            <Maximize color="#fff" size={22} />
-                          )}
-                        </Text>
-                      </Pressable>
-                    )}
                   </View>
                 </View>
               </View>
