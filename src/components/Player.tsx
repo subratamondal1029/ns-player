@@ -1,4 +1,4 @@
-import { VideoPlayerProps } from "@/types/player.types";
+import { QuickControlOp, VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
 import Slider from "@react-native-community/slider";
 import { useEvent, useEventListener } from "expo";
@@ -10,7 +10,7 @@ import {
   Pause,
   Play,
   SkipBack,
-  SkipForward
+  SkipForward,
 } from "lucide-react-native";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -22,6 +22,7 @@ import {
   Text,
   View,
 } from "react-native";
+import QuickControl from "./quickControls/QuickControl";
 
 const cleanUri = (uri: string) => {
   if (Platform.OS !== "web" || !uri) return;
@@ -46,8 +47,10 @@ export default function VideoPlayer({
   const initialLoad = useRef<boolean>(false);
   const intervalId = useRef<number | null>(null);
 
+  const seeking = useRef<boolean>(false);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
+  const [op, setOp] = useState<QuickControlOp | null>(null);
 
   const [timestamp, setTimestamp] = useState<number>(
     video.initialTimestamp || 0,
@@ -74,16 +77,51 @@ export default function VideoPlayer({
 
   const playPause = () => {
     if (!readyVideo) return;
-    if (isPlaying) {
+    if (player.playing) {
       player.pause();
     } else {
       player.play();
     }
   };
 
-  const updateTimestamp = (timestamp: number) => {
+  const updateTimestampStates = (timestamp: number) => {
     setTimestamp(timestamp);
     updateHistory(timestamp);
+  };
+
+  const seekTimestamp = () => {
+    let timeoutId: number | null = null;
+    let updatedTimestamp: number = timestamp;
+
+    return (count: number, fwd: boolean = true) => {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      seeking.current = true;
+
+      let newTimestamp: number;
+      if (count === 0) {
+        newTimestamp = 0;
+      } else {
+        if (fwd) {
+          newTimestamp = Math.min(player.duration, updatedTimestamp + count);
+        } else {
+          newTimestamp = Math.max(0, updatedTimestamp - count);
+        }
+      }
+
+      updatedTimestamp = newTimestamp;
+
+      updateTimestampStates(updatedTimestamp);
+      timeoutId = setTimeout(() => {
+        seeking.current = false;
+        player.currentTime = updatedTimestamp;
+        // setOp(null);
+        timeoutId = null;
+      }, 500);
+    };
   };
 
   const onSeek = (value: number) => {
@@ -113,14 +151,18 @@ export default function VideoPlayer({
     if (isPlaying) {
       if (intervalId.current === null) {
         intervalId.current = setInterval(() => {
-          updateTimestamp(player.currentTime);
+          if (!seeking.current) {
+            updateTimestampStates(player.currentTime);
+          }
         }, 1000);
       }
     } else {
       if (intervalId.current !== null) {
         clearInterval(intervalId.current);
         intervalId.current = null;
-        updateTimestamp(player.currentTime);
+        if (!seeking.current) {
+          updateTimestampStates(player.currentTime);
+        }
       }
     }
 
@@ -186,12 +228,20 @@ export default function VideoPlayer({
               </View>
 
               {/* quick controls */}
-              {/* TODO: make it modular for different platform */}
-              <Pressable className="w-full flex-1 border border-red-600">
-                <Text className="text-white text-base font-semibold text-center my-auto">
-                  Quick control no button
-                </Text>
-              </Pressable>
+              <QuickControl
+                timestamp={timestamp}
+                duration={player.duration}
+                hasNext={hasNext}
+                hasPrev={hasPrev}
+                hasSubtitle={video.subtitle !== null}
+                op={op}
+                onNext={next}
+                onPrev={prev}
+                playPause={playPause}
+                subtitleToggle={() => setSubtileEnabled((prev) => !prev)}
+                updateTimestamp={seekTimestamp()}
+                volumeChange={console.log}
+              />
 
               {/* main controls */}
               <View className="w-full pb-4 pt-1 px-4 sm:px-8 border border-green-500 gap-2">
