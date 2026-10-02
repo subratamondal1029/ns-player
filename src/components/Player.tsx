@@ -41,11 +41,13 @@ export default function VideoPlayer({
   updateHistory,
 }: VideoPlayerProps) {
   const player = useVideoPlayer(video.uri);
+  const [showControls, setShowControls] = useState<boolean>(true);
 
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
   const initialLoad = useRef<boolean>(false);
   const intervalId = useRef<number | null>(null);
+  const controlsVisibleTimeout = useRef<number | null>(null);
 
   const seeking = useRef<boolean>(false);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
@@ -75,12 +77,29 @@ export default function VideoPlayer({
     }
   });
 
+  const handleControlToggle = (show: boolean) => {
+    if (controlsVisibleTimeout.current !== null) {
+      clearTimeout(controlsVisibleTimeout.current);
+      controlsVisibleTimeout.current = null;
+    }
+
+    setShowControls(show);
+    if (show && player.playing) {
+      controlsVisibleTimeout.current = setTimeout(() => {
+        setShowControls(false);
+        controlsVisibleTimeout.current = null;
+      }, 3000);
+    }
+  };
+
   const playPause = () => {
     if (!readyVideo) return;
     if (player.playing) {
       player.pause();
+      setShowControls(true);
     } else {
       player.play();
+      handleControlToggle(false);
     }
   };
 
@@ -94,6 +113,7 @@ export default function VideoPlayer({
     let updatedTimestamp: number = timestamp;
 
     return (count: number, fwd: boolean = true) => {
+      handleControlToggle(true);
       if (timeoutId !== null) {
         clearTimeout(timeoutId);
         timeoutId = null;
@@ -118,6 +138,7 @@ export default function VideoPlayer({
       timeoutId = setTimeout(() => {
         seeking.current = false;
         player.currentTime = updatedTimestamp;
+        handleControlToggle(false);
         // setOp(null);
         timeoutId = null;
       }, 500);
@@ -183,9 +204,17 @@ export default function VideoPlayer({
   }, [video.uri]);
 
   return (
-    <View
-      className="flex-1 w-full h-full bg-black justify-center relative"
+    <Pressable
+      className="flex-1 w-full h-full bg-black justify-center relative cursor-default"
       ref={playerRef}
+      {...(Platform.OS === "web"
+        ? {
+            onPointerMove: () => handleControlToggle(true),
+            onPointerLeave: () => handleControlToggle(false),
+          }
+        : {
+            onPress: () => handleControlToggle(true),
+          })}
     >
       <StatusBar hidden />
 
@@ -201,7 +230,11 @@ export default function VideoPlayer({
           fullscreenOptions={{ enable: false }}
         />
 
-        <View className="w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50">
+        <View
+          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 ${
+            showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+          }`}
+        >
           {readyVideo ? (
             <>
               {/* title & back */}
@@ -350,7 +383,7 @@ export default function VideoPlayer({
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
