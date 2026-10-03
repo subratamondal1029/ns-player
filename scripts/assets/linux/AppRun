@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+set -e
+
+APPDIR="$(dirname "$(readlink -f "$0")")"
+SERVER="$APPDIR/usr/bin/ns-player"
+
+HOST="127.0.0.1"
+PORT="4920"
+URL="http://${HOST}:${PORT}"
+
+# Start server
+"$SERVER" &
+SERVER_PID=$!
+
+cleanup() {
+    kill "$SERVER_PID" 2>/dev/null || true
+    wait "$SERVER_PID" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+# Wait until server is ready
+until curl -fsS "$URL" >/dev/null 2>&1; do
+    if ! kill -0 "$SERVER_PID" 2>/dev/null; then
+        echo "NS Player server failed to start."
+        exit 1
+    fi
+
+    sleep 0.2
+done
+
+# Find Chrome
+if command -v google-chrome >/dev/null 2>&1; then
+    CHROME="google-chrome"
+elif command -v google-chrome-stable >/dev/null 2>&1; then
+    CHROME="google-chrome-stable"
+else
+    echo "Google Chrome is required but was not found."
+    exit 1
+fi
+
+# Dedicated Chrome profile
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/ns-player"
+PROFILE_DIR="$CONFIG_DIR/chrome"
+
+mkdir -p "$PROFILE_DIR"
+
+# Launch application window
+"$CHROME" \
+    --user-data-dir="$PROFILE_DIR" \
+    --app="$URL"

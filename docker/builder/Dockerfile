@@ -10,6 +10,12 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     xz-utils \
     openjdk-17-jdk \
+    squashfs-tools \
+    file \
+    desktop-file-utils \
+    zsync \
+    patchelf \
+    binutils \
     && rm -rf /var/lib/apt/lists/*
 
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -42,3 +48,11 @@ RUN yes | sdkmanager \
 RUN npm install -g eas-cli
 
 RUN git config --system --add safe.directory /app
+
+RUN curl -fL \
+    https://github.com/AppImage/appimagetool/releases/download/1.9.1/appimagetool-x86_64.AppImage \
+    -o /tmp/appimagetool \
+    && chmod +x /tmp/appimagetool \
+    && /tmp/appimagetool --appimage-extract \
+    && mv squashfs-root/usr/bin/appimagetool /usr/local/bin/appimagetool \
+    && rm -rf /tmp/appimagetool squashfs-root
