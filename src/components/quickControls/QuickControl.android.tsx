@@ -8,10 +8,7 @@ import {
 
 let count = 0;
 
-const QuickControl = ({
-  updateTimestamp,
-  playPause,
-}: QuickControlProps) => {
+const QuickControl = ({ updateTimestamp, playPause }: QuickControlProps) => {
   const doubleTapControls = {
     left: () => updateTimestamp(10, false),
     center: playPause,
@@ -32,11 +29,12 @@ const QuickControl = ({
     .activeOffsetY([-10, 10])
     .failOffsetX([-30, 30])
     .onUpdate((event) => {
-      if (event.translationY < 0) {
-        console.log("volume update +", Date.now());
-      } else {
-        console.log("volume update -", Date.now());
-      }
+      // TODO: implement volume control
+      // if (event.translationY < 0) {
+      //   console.log("volume update +", Date.now());
+      // } else {
+      //   console.log("volume update -", Date.now());
+      // }
     });
 
   const rightGesture = Gesture.Exclusive(createDoubleTap("right"), verticalPan);

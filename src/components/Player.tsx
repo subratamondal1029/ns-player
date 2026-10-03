@@ -29,8 +29,6 @@ import QuickControl from "./quickControls/QuickControl";
 
 const cleanUri = (uri: string) => {
   if (Platform.OS !== "web" || !uri) return;
-
-  console.log("Releasing video URI: " + uri);
   URL.revokeObjectURL(uri);
 };
 
@@ -192,13 +190,11 @@ export default function VideoPlayer({
       }
     } else if (status === "loading" || status === "idle") {
       setReadyVideo(false);
-      console.log("Video is loading or idle");
     }
   }, [status, video.initialTimestamp]);
 
   // timestamp tracker
   useEffect(() => {
-    console.log("isPlaying:", isPlaying);
     if (isPlaying) {
       if (intervalId.current === null) {
         intervalId.current = setInterval(() => {
@@ -228,7 +224,6 @@ export default function VideoPlayer({
   // uri cleanup
   useEffect(() => {
     return () => {
-      console.log("Player unmount");
       cleanUri(video.uri);
     };
   }, [video.uri]);

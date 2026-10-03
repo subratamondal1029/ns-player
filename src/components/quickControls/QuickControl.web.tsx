@@ -24,9 +24,7 @@ const QuickControl = ({
     const globalKeyEvent = (e: KeyboardEvent) => {
       e.preventDefault();
 
-      console.log("Key down:", e.key);
-      const method = controls[e.key];
-      method?.();
+      controls[e.key]?.();
     };
 
     window.addEventListener("keydown", globalKeyEvent);
@@ -36,12 +34,7 @@ const QuickControl = ({
     };
   }, []);
 
-  return (
-    <Pressable
-      className="w-full flex-1"
-      onPress={playPause}
-    ></Pressable>
-  );
+  return <Pressable className="w-full flex-1" onPress={playPause}></Pressable>;
 };
 
 export default QuickControl;
