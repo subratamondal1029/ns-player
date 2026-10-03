@@ -418,10 +418,10 @@ const styles = StyleSheet.create({
 
 const SkipFeedback = ({ fwd, count }: { fwd: boolean; count: number }) => {
   return (
-    <View className="flex flex-row justify-center items-center rounded-full">
-      {!fwd && <ChevronsLeft color="#fff" size={35} />}
-      <Text className="text-white text-xl font-bold">{count}</Text>
-      {fwd && <ChevronsRight color="#fff" size={35} />}
+    <View className="flex-row justify-center items-center gap-1">
+      {!fwd && <ChevronsLeft color="#fff" size={24} />}
+      <Text className="text-white text-base font-bold">{count}s</Text>
+      {fwd && <ChevronsRight color="#fff" size={24} />}
     </View>
   );
 };
