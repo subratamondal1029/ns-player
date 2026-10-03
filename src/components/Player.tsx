@@ -1,4 +1,4 @@
-import { QuickControlOp, VideoPlayerProps } from "@/types/player.types";
+import { VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
 import Slider from "@react-native-community/slider";
 import { useEvent, useEventListener } from "expo";
@@ -52,7 +52,6 @@ export default function VideoPlayer({
   const seeking = useRef<boolean>(false);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
-  const [op, setOp] = useState<QuickControlOp | null>(null);
 
   const [timestamp, setTimestamp] = useState<number>(
     video.initialTimestamp || 0,
@@ -262,18 +261,11 @@ export default function VideoPlayer({
 
               {/* quick controls */}
               <QuickControl
-                timestamp={timestamp}
-                duration={player.duration}
-                hasNext={hasNext}
-                hasPrev={hasPrev}
-                hasSubtitle={video.subtitle !== null}
-                op={op}
                 onNext={next}
                 onPrev={prev}
                 playPause={playPause}
                 subtitleToggle={() => setSubtileEnabled((prev) => !prev)}
                 updateTimestamp={seekTimestamp()}
-                volumeChange={console.log}
               />
 
               {/* main controls */}

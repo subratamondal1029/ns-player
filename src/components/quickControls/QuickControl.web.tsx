@@ -1,20 +1,13 @@
 import { QuickControlProps } from "@/types/player.types";
-import { View } from "lucide-react-native";
-import { useEffect, useMemo } from "react";
-import { Pressable, type ViewStyle } from "react-native";
+import { useEffect } from "react";
+import { Pressable } from "react-native";
 
 const QuickControl = ({
-  hasNext,
-  hasPrev,
-  hasSubtitle,
-  timestamp,
-  op,
   onNext,
   onPrev,
   playPause,
   subtitleToggle,
   updateTimestamp,
-  volumeChange,
 }: QuickControlProps) => {
   const controls: Record<string, () => void> = {
     k: playPause,
@@ -43,41 +36,11 @@ const QuickControl = ({
     };
   }, []);
 
-  const style = useMemo<ViewStyle>(() => {
-    switch (op?.position) {
-      case "left":
-        return { left: 20 };
-      case "right":
-        return { right: 20 };
-      case "center":
-        return { left: "50%", transform: [{ translateX: "-50%" }] };
-      default:
-        return {};
-    }
-  }, [op?.position]);
-
   return (
     <Pressable
-      className="w-full flex-1 border relative border-red-600"
+      className="w-full flex-1 border border-red-600"
       onPress={playPause}
-    >
-      {op && (
-        <View
-          style={{
-            borderWidth: 2,
-            borderColor: "#fff",
-
-            position: "absolute",
-            zIndex: 50,
-            top: "50%",
-            transform: [{ translateY: "-50%" }],
-            ...style,
-          }}
-        >
-          {op.content}
-        </View>
-      )}
-    </Pressable>
+    ></Pressable>
   );
 };
 

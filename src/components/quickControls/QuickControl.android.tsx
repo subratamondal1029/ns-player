@@ -9,10 +9,8 @@ import {
 let count = 0;
 
 const QuickControl = ({
-  volumeChange,
   updateTimestamp,
   playPause,
-  op,
 }: QuickControlProps) => {
   const doubleTapControls = {
     left: () => updateTimestamp(10, false),
