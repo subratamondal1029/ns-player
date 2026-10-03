@@ -10,3 +10,5 @@ docker run --rm \
   -w /app \
   ns-player-builder:base \
   npm run build:android
+
+mv build/android/build-*apk build/android/ns-player.apk

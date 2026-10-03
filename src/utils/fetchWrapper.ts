@@ -20,8 +20,8 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
 
   try {
     response = await fetch(url, options);
-  } catch {
-    throw new ApiError("Network error", 0);
+  } catch (err) {
+    throw new ApiError(`Network error :: ${(err as Error).message}`, 0);
   }
 
   if (response.status === 304) {
