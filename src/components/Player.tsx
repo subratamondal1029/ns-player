@@ -7,6 +7,8 @@ import {
   Captions,
   CaptionsOff,
   ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
   Pause,
   Play,
   SkipBack,
@@ -22,6 +24,7 @@ import {
   Text,
   View,
 } from "react-native";
+import Feedback from "./Feedback";
 import QuickControl from "./quickControls/QuickControl";
 
 const cleanUri = (uri: string) => {
@@ -52,6 +55,8 @@ export default function VideoPlayer({
   const seeking = useRef<boolean>(false);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
+  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
+  const feedbackTimeout = useRef<number | null>(null);
 
   const [timestamp, setTimestamp] = useState<number>(
     video.initialTimestamp || 0,
@@ -67,6 +72,18 @@ export default function VideoPlayer({
   const { status } = useEvent(player, "statusChange", {
     status: player.status,
   });
+
+  const triggerFeedback = (node: React.ReactNode, duration = 800) => {
+    if (feedbackTimeout.current !== null) {
+      clearTimeout(feedbackTimeout.current);
+      feedbackTimeout.current = null;
+    }
+    setFeedback(node);
+    feedbackTimeout.current = setTimeout(() => {
+      setFeedback(null);
+      feedbackTimeout.current = null;
+    }, duration);
+  };
 
   useEventListener(player, "playToEnd", () => {
     if (hasNext) {
@@ -100,6 +117,13 @@ export default function VideoPlayer({
       player.play();
       handleControlToggle(false);
     }
+
+    const feedBackCom = player.playing ? (
+      <Pause color="#fff" size={40} />
+    ) : (
+      <Play color="#fff" size={40} />
+    );
+    triggerFeedback(feedBackCom);
   };
 
   const updateTimestampStates = (timestamp: number) => {
@@ -132,8 +156,15 @@ export default function VideoPlayer({
       }
 
       updatedTimestamp = newTimestamp;
-
       updateTimestampStates(updatedTimestamp);
+      if (newTimestamp !== 0) {
+        triggerFeedback(
+          <SkipFeedback
+            fwd={fwd}
+            count={Math.abs(Math.floor(updatedTimestamp - timestamp))}
+          />,
+        );
+      }
       timeoutId = setTimeout(() => {
         seeking.current = false;
         player.currentTime = updatedTimestamp;
@@ -228,6 +259,7 @@ export default function VideoPlayer({
           allowsPictureInPicture
           fullscreenOptions={{ enable: false }}
         />
+        <Feedback>{feedback}</Feedback>
 
         <View
           className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 ${
@@ -383,3 +415,13 @@ export default function VideoPlayer({
 const styles = StyleSheet.create({
   video: { width: "100%", height: "100%" },
 });
+
+const SkipFeedback = ({ fwd, count }: { fwd: boolean; count: number }) => {
+  return (
+    <View className="flex flex-row justify-center items-center rounded-full">
+      {!fwd && <ChevronsLeft color="#fff" size={35} />}
+      <Text className="text-white text-xl font-bold">{count}</Text>
+      {fwd && <ChevronsRight color="#fff" size={35} />}
+    </View>
+  );
+};
