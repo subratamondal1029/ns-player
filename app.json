@@ -24,6 +24,8 @@
       }
     },
     "android": {
+      "package": "com.subratamondal.nsplayer",
+      "versionCode": 1,
       "userInterfaceStyle": "dark",
       "splash": {
         "backgroundColor": "#0a0a0a",
@@ -67,6 +69,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "39623b31-499e-4430-8596-1d038536a741"
+      }
     }
   }
 }
