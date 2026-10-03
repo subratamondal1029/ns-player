@@ -68,7 +68,6 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    console.log("Timestamp: ", timestamp);
     if (readyForStorage.current && timestamp) {
       saveTimestampState(timestamp);
     }

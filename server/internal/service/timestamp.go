@@ -11,8 +11,8 @@ import (
 )
 
 type position struct {
-	Index     int     `json:"index" validate:"gte=0"`
-	Timestamp float64 `json:"timestamp" validate:"gte=0"`
+	Index     *int     `json:"index" validate:"gte=0"`
+	Timestamp *float64 `json:"timestamp" validate:"gte=0"`
 }
 
 type Timestamp struct {

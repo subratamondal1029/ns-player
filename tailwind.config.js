@@ -4,7 +4,14 @@ module.exports = {
   content: ["./src/**/*.{jsx,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ["Inter_400Regular", "Inter", "system-ui", "sans-serif"],
+        medium: ["Inter_500Medium", "Inter", "sans-serif"],
+        semibold: ["Inter_600SemiBold", "Inter", "sans-serif"],
+        bold: ["Inter_700Bold", "Inter", "sans-serif"],
+      },
+    },
     fontSize: {
       xs: ["0.875rem", { lineHeight: "1.25rem" }],   // 14px
       sm: ["1rem", { lineHeight: "1.5rem" }],        // 16px

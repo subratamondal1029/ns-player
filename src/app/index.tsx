@@ -25,6 +25,7 @@ import type { Dir } from "@/types/video.type";
 import { decodePlaylistName } from "@/utils/playlistName";
 import { sortVideos } from "@/utils/sortVideos";
 import { router } from "expo-router";
+import { Play } from "lucide-react-native";
 import { useEffect, useState } from "react";
 
 export default function App() {
@@ -213,29 +214,6 @@ export default function App() {
             </Pressable>
           </View>
 
-          {/* Quick Controls */}
-          {videos.length > 0 && (
-            <View className="flex-row gap-3 mb-5">
-              <Pressable
-                onPress={() => openPlayer(lastPlayedVideoIdx)}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-800 active:bg-neutral-700 items-center justify-center border border-neutral-700"
-              >
-                <Text className="text-neutral-100 text-sm font-semibold">
-                  Continue
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={startOver}
-                className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-900 active:bg-neutral-800 items-center justify-center border border-neutral-800"
-              >
-                <Text className="text-neutral-300 text-sm font-medium">
-                  Start Over
-                </Text>
-              </Pressable>
-            </View>
-          )}
-
           {/* Main Content */}
           <View className="flex-1">
             {loading ? (
@@ -262,6 +240,18 @@ export default function App() {
               </View>
             )}
           </View>
+
+          {/* Continue Playing Floating Button */}
+          {videos.length > 0 && (
+            <View className="fixed bottom-6 left-[85%] z-50">
+              <Pressable
+                onPress={() => openPlayer(lastPlayedVideoIdx)}
+                className="w-16 h-16 justify-center items-center rounded-full bg-blue-600 active:bg-blue-500 shadow-xl shadow-blue-500/30"
+              >
+                <Play color="#fff" size={28} />
+              </Pressable>
+            </View>
+          )}
         </View>
       </SafeAreaView>
     </SafeAreaProvider>
