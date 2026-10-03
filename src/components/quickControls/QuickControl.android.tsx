@@ -42,16 +42,16 @@ const QuickControl = ({
   const rightGesture = Gesture.Exclusive(createDoubleTap("right"), verticalPan);
 
   return (
-    <View className="w-full flex-1 border border-red-600">
+    <View className="w-full flex-1">
       <GestureHandlerRootView style={{ flex: 1, flexDirection: "row" }}>
         <GestureDetector gesture={createDoubleTap("left")}>
-          <Pressable className="w-full flex-1 border border-red-400"></Pressable>
+          <Pressable className="w-full flex-1"></Pressable>
         </GestureDetector>
         <GestureDetector gesture={createDoubleTap("center")}>
-          <Pressable className="w-40 border border-green-400"></Pressable>
+          <Pressable className="w-40"></Pressable>
         </GestureDetector>
         <GestureDetector gesture={rightGesture}>
-          <Pressable className="w-full flex-1 border border-blue-400"></Pressable>
+          <Pressable className="w-full flex-1"></Pressable>
         </GestureDetector>
       </GestureHandlerRootView>
     </View>

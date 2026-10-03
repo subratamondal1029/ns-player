@@ -237,7 +237,7 @@ export default function VideoPlayer({
           {readyVideo ? (
             <>
               {/* title & back */}
-              <View className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6 border border-blue-500">
+              <View className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6">
                 <Pressable
                   onPress={onBack}
                   hitSlop={12}
@@ -269,7 +269,7 @@ export default function VideoPlayer({
               />
 
               {/* main controls */}
-              <View className="w-full pb-4 pt-1 px-4 sm:px-8 border border-green-500 gap-2">
+              <View className="w-full pb-4 pt-1 px-4 sm:px-8 gap-2">
                 {/* progress bar */}
                 <View className="w-full flex-row items-center justify-between gap-3">
                   <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px] text-right">
@@ -289,11 +289,11 @@ export default function VideoPlayer({
                     onValueChange={onSeek}
                     tapToSeek
                     minimumTrackTintColor="#3b82f6"
-                    maximumTrackTintColor="#52525b"
+                    maximumTrackTintColor="#d5dbe8"
                     thumbTintColor="#60a5fa"
                     thumbSize={12}
                   />
-                  <Text className="text-neutral-400 text-xs sm:text-sm font-medium min-w-[45px]">
+                  <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px]">
                     {formatTimestamp(player.duration || 0)}
                   </Text>
                 </View>

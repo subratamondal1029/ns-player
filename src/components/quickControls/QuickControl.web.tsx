@@ -38,7 +38,7 @@ const QuickControl = ({
 
   return (
     <Pressable
-      className="w-full flex-1 border border-red-600"
+      className="w-full flex-1"
       onPress={playPause}
     ></Pressable>
   );
