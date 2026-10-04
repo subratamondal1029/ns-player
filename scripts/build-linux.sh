@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+source "$(dirname "$0")/config.sh"
 
 echo "Copying web assets to server..."
 mkdir -p server/internal/embed/assets
@@ -27,7 +28,7 @@ docker run --rm \
   -v "$PWD:/app" \
   -w /app \
   -e ARCH=x86_64 \
-  ns-player-builder:base \
+  "$BUILDER_IMAGE" \
   appimagetool build/linux/AppDir build/linux/NS-Player.AppImage
 
 echo "AppImage created successfully."
