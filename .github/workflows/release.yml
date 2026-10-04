@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
     steps:
@@ -39,7 +39,7 @@ jobs:
 
   android:
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v6
       - uses: docker/login-action@v3
@@ -58,7 +58,7 @@ jobs:
 
   web:
     needs: verify
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v6
       - uses: docker/login-action@v3
@@ -82,14 +82,17 @@ jobs:
 
   linux:
     needs: [verify, web]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
       - uses: actions/download-artifact@v4
         with:
           name: web-dir
           path: build/web
-      - uses: actions/checkout@v6
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -109,13 +112,13 @@ jobs:
 
   release:
     needs: [verify, android, web, linux]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: "{android,web,linux,server}"
+          pattern: "{android,web-zip,linux,server}"
           path: artifacts
           merge-multiple: true
       - uses: softprops/action-gh-release@v3

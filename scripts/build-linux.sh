@@ -10,6 +10,7 @@ echo "Building go server..."
 mkdir -p build/server
 
 cd server
+go mod download
 GOOS=linux GOARCH=amd64 go build -o ../build/server/app-linux-amd64 ./cmd/ns-player
 cd ..
 echo "Go server built successfully."

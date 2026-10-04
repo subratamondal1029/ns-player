@@ -9,6 +9,6 @@ docker run --rm \
     -v "$PWD:/app" \
     -w /app \
     "$BUILDER_IMAGE" \
-    npm run build:web
+    sh -c "npm ci && npm run build:web"
 
 echo "Web build completed"
