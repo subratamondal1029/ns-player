@@ -11,6 +11,6 @@ docker run --rm \
   -v "$PWD:/app" \
   -w /app \
   "$BUILDER_IMAGE" \
-  npm run build:android
+  sh -c "npm ci && npm run build:android"
 
 mv build/android/build-*apk build/android/ns-player.apk
