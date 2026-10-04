@@ -4,26 +4,28 @@
     "slug": "ns-player",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/ios/AppIcon~ios-marketing.png",
     "scheme": "nsplayer",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/ios/AppIcon~ios-marketing.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a",
       "dark": {
-        "image": "./assets/images/splash-icon.png",
+        "image": "./assets/ios/AppIcon~ios-marketing.png",
         "backgroundColor": "#0a0a0a"
       }
     },
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/ios/AppIcon~ios-marketing.png",
       "userInterfaceStyle": "dark",
       "splash": {
         "backgroundColor": "#0a0a0a"
       }
     },
     "android": {
+      "package": "com.subratamondal.nsplayer",
+      "versionCode": 1,
       "userInterfaceStyle": "dark",
       "splash": {
         "backgroundColor": "#0a0a0a",
@@ -33,15 +35,15 @@
       },
       "adaptiveIcon": {
         "backgroundColor": "#0a0a0a",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
+        "backgroundImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher_background.png",
+        "monochromeImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher_monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/web/favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -49,11 +51,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0a0a0a",
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/ios/AppIcon~ios-marketing.png",
           "imageWidth": 76,
           "dark": {
             "backgroundColor": "#0a0a0a",
-            "image": "./assets/images/splash-icon.png"
+            "image": "./assets/ios/AppIcon~ios-marketing.png"
           }
         }
       ],
@@ -62,11 +64,25 @@
         {
           "supportsPictureInPicture": true
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "39623b31-499e-4430-8596-1d038536a741"
+      }
     }
   }
 }

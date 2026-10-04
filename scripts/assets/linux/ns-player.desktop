@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=NS Player
+Comment=Network synchronized media player
+Exec=ns-player
+Icon=ns-player
+Type=Application
+Categories=AudioVideo;Video;Player;
+Terminal=false

@@ -15,8 +15,8 @@ const QuickControl = ({
     N: onNext,
     P: onPrev,
     c: subtitleToggle,
-    ArrowLeft: () => updateTimestamp(2, false),
-    ArrowRight: () => updateTimestamp(2, true),
+    ArrowLeft: () => updateTimestamp(10, false),
+    ArrowRight: () => updateTimestamp(10, true),
     Home: () => updateTimestamp(0),
   };
 

@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gosimple/slug"
 )
@@ -19,6 +20,53 @@ type Config struct {
 }
 
 var config Config
+
+func getIp() string {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var ip string
+
+	for _, iface := range interfaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+
+		// Ignore Docker/virtual bridge interfaces
+		if strings.HasPrefix(iface.Name, "docker") ||
+			strings.HasPrefix(iface.Name, "br-") {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			ipnet, ok := addr.(*net.IPNet)
+			if !ok {
+				continue
+			}
+
+			ipv4 := ipnet.IP.To4()
+			if ipv4 == nil {
+				continue
+			}
+
+			ip = ipv4.String()
+			break
+		}
+
+		if ip != "" {
+			break
+		}
+	}
+
+	return ip
+}
 
 func init() {
 	// app info
@@ -54,35 +102,13 @@ func init() {
 		log.Panicln("Timestamp file is a directory")
 	}
 
-	// machine info
-	addrs, err := net.InterfaceAddrs()
-
-	if err != nil {
-		log.Fatalf("Error getting interface addresses: %v", err)
-	}
-
-	var ip string
-	for _, addr := range addrs {
-		ipnet, ok := addr.(*net.IPNet)
-
-		if !ok || ipnet.IP.IsLoopback() {
-			continue
-		}
-
-		if ipnet.IP.To4() != nil {
-			ip = ipnet.IP.String()
-			break
-		}
-
-	}
-
 	config = Config{
 		AppName:     appName,
 		AppNameSlug: appNameSlug,
 		StateDir:    appConfPath,
-		Port:        getEnv("PORT", "8080"),
+		Port:        getEnv("PORT", "4920"),
 		Origin:      getEnv("ORIGIN", "http://localhost:8081"),
-		Ip:          ip,
+		Ip:          getIp(),
 	}
 }
 
