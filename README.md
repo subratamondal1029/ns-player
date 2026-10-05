@@ -1,56 +1,69 @@
-# Welcome to your Expo app 👋
+# NS Player
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+NS Player is an offline-first, cross-platform local video player designed for seamless playback and timestamp synchronization between **Linux** and **Android** across a local network without requiring internet access.
 
-## Get started
+---
 
-1. Install dependencies
+## Architecture Overview
 
+- **Linux (Desktop)**:
+  - Built with React Native Web embedded into a Go backend server.
+  - The Go backend acts as the central source of truth for timestamp management and sync operations.
+  - Distributed as an AppImage package.
+- **Android (Mobile)**:
+  - Built with React Native.
+  - Progress and timestamps are persisted locally using `AsyncStorage`.
+
+---
+
+## Local Synchronization
+
+Synchronization works completely offline over your local Wi-Fi / LAN network:
+
+1. **Linux**: Generate a QR code in the app by clicking the Sync button.
+2. **Android**: Open the built-in scanner and scan the Linux screen's QR code.
+3. **Data Exchange**: Send progress from mobile to desktop or receive latest timestamps from the desktop server.
+
+---
+
+## Usage Requirements & Conventions
+
+To ensure proper media tracking and synchronization across devices:
+
+- **File Naming Convention**: Video files within a playlist must follow sequential numbering prefix format (e.g., `001`, `002`, `003`, etc.).
+- **Playlist Key**: The playlist key/name entered by the user must match identically on both Linux and Android.
+- **Firewall & Network**: Port `4920` must be open and accessible on the local network.
+- **Linux Prerequisites**: **Google Chrome** must be pre-installed on the host system.
+
+---
+
+## Installation & Downloads
+
+Official pre-built binaries are available on the [Releases](https://github.com/subratamondal1029/ns-player/releases) page:
+
+### Linux
+
+1. Ensure **Google Chrome** is installed on your system.
+2. Download the latest [`NS-Player.AppImage`](https://github.com/subratamondal1029/ns-player/releases/latest/download/NS-Player.AppImage).
+3. Make it executable and run:
    ```bash
-   npm install
+   chmod +x NS-Player.AppImage
+   ./NS-Player.AppImage
    ```
 
-2. Start the app
+### Android
 
-   ```bash
-   npx expo start
-   ```
+1. Download the latest [`ns-player.apk`](https://github.com/subratamondal1029/ns-player/releases/latest/download/ns-player.apk).
+2. Install the APK on your Android device.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Roadmap
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- [ ] Improved double-tap skip functionality
+- [ ] Subtitle support
+- [ ] Pan-gesture volume controls
+- [ ] Automatic local network device discovery and seamless background sync
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+> [!NOTE]
+> This application was designed around a personal workflow and specific requirements. If you have different preferences or feature needs, feel free to fork the repository and tailor it to your use case.
