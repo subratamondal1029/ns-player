@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gosimple/slug"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
