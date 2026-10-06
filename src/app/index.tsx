@@ -115,6 +115,7 @@ export default function App() {
     try {
       if (!dir) return;
 
+      if (index === -1) index = 0;
       const video = videos[index];
       if (!video) return;
 
