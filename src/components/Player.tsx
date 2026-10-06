@@ -230,7 +230,7 @@ export default function VideoPlayer({
 
   return (
     <Pressable
-      className="flex-1 w-full h-full bg-black justify-center relative cursor-default"
+      className={`flex-1 w-full h-full bg-black justify-center relative ${showControls ? "cursor-default" : "cursor-none"}`}
       ref={playerRef}
       {...(Platform.OS === "web"
         ? {
