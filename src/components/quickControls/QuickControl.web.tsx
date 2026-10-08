@@ -34,7 +34,12 @@ const QuickControl = ({
     };
   }, []);
 
-  return <Pressable className="w-full flex-1" onPress={playPause}></Pressable>;
+  return (
+    <Pressable
+      className="w-full flex-1 outline-none focus:outline-none"
+      onPress={playPause}
+    ></Pressable>
+  );
 };
 
 export default QuickControl;
