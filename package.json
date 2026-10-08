@@ -1,7 +1,7 @@
 {
   "name": "ns-player",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/ui": "~57.0.19",
@@ -58,7 +58,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:web": "expo export --platform web --output-dir build/web",
-    "build:android": "eas build --local --platform android --profile local"
+    "build:android": "eas build --local --platform android --profile local",
+    "bump-version": "./scripts/version-bump.sh"
   },
   "private": true
 }
