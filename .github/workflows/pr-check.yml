@@ -1,0 +1,32 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify-version:
+    runs-on: ubuntu-26.04
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+      - id: check
+        run: |
+          local_v=$(jq -r .version package.json)
+          remote_v=$(git ls-remote --tags --refs origin 'v*' \
+            | sed 's|.*refs/tags/v||' | sort -V | tail -n1)
+          echo "local=$local_v remote=${remote_v:-none}"
+
+          if [ -n "$remote_v" ]; then
+            if [ "$local_v" = "$remote_v" ]; then
+              echo "::error::Version $local_v is already released"; exit 1
+            fi
+            highest=$(printf '%s\n%s\n' "$remote_v" "$local_v" | sort -V | tail -n1)
+            if [ "$highest" != "$local_v" ]; then
+              echo "::error::Local $local_v is lower than remote $remote_v"; exit 1
+            fi
+          fi
+
+          echo "version=$local_v" >> "$GITHUB_OUTPUT"
