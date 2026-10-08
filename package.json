@@ -58,7 +58,8 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "build:web": "expo export --platform web --output-dir build/web",
-    "build:android": "eas build --local --platform android --profile local"
+    "build:android": "eas build --local --platform android --profile local",
+    "bump-version": "./scripts/version-bump.sh"
   },
   "private": true
 }
