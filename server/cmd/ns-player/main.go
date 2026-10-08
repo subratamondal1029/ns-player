@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/internal/handler"
 	"github.com/subratamondal1029/ns-player/internal/middleware"

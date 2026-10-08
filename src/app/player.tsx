@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -10,8 +10,9 @@ import VideoPlayer from "@/components/Player";
 import { useTimestamp } from "@/context/timestampContext";
 import { useVideo } from "@/context/videoContext";
 import { loadDir } from "@/services/storage/storage";
-import { getVideoUri } from "@/services/video/video";
+import { getVideoRawSubtitle, getVideoUri } from "@/services/video/video";
 import { PlayerVideo } from "@/types/player.types";
+import { srtParser } from "@/utils/subtitleParser";
 
 const player = () => {
   const { videos, currentVideoIdx, hasNext, hasPrev, next, prev } = useVideo();
@@ -38,13 +39,13 @@ const player = () => {
       if (!playbackUri) return;
 
       const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
-
+      const rawSubtitle = await getVideoRawSubtitle(dir.dir, currentVideo.name);
       setPlaylist(dir.playlist);
       setVideo({
         title: currentVideo.name,
         uri: playbackUri,
         initialTimestamp: timestamp,
-        subtitle: null, //TODO: get subtitle then set
+        subtitle: rawSubtitle ? srtParser(rawSubtitle) : null,
       });
     };
 

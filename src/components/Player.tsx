@@ -1,5 +1,6 @@
 import { VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
+import { findSubtitle } from "@/utils/subtitleParser";
 import Slider from "@react-native-community/slider";
 import { useEvent, useEventListener } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -47,12 +48,14 @@ export default function VideoPlayer({
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
   const initialLoad = useRef<boolean>(false);
-  const intervalId = useRef<number | null>(null);
+  const timestampIntervalId = useRef<number | null>(null);
   const controlsVisibleTimeout = useRef<number | null>(null);
 
   const seeking = useRef<boolean>(false);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
-  const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
+  const subtitleIntervalId = useRef<number | null>(null);
+  const subtitleEnabled = useRef<boolean>(video.subtitle !== null);
+  const [subtitle, setSubtitle] = useState<string>("");
   const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
   const feedbackTimeout = useRef<number | null>(null);
 
@@ -124,6 +127,28 @@ export default function VideoPlayer({
     triggerFeedback(feedBackCom);
   };
 
+  const toggleSubtitle = () => {
+    if (!video.subtitle) return;
+    subtitleEnabled.current = !subtitleEnabled.current;
+
+    if (subtitleEnabled.current) {
+      triggerFeedback(<Captions color="#fff" fill="transparent" size={40} />);
+    } else {
+      triggerFeedback(
+        <CaptionsOff color="#fff" fill="transparent" size={40} />,
+      );
+    }
+  };
+
+  const updateSubtitle = (timestamp: number) => {
+    if (!video.subtitle || !player.playing) return;
+    if (subtitleEnabled.current) {
+      setSubtitle(findSubtitle(video.subtitle, timestamp + 0.3));
+    } else {
+      setSubtitle("");
+    }
+  };
+
   const updateTimestampStates = (timestamp: number) => {
     setTimestamp(timestamp);
     updateHistory(timestamp);
@@ -167,7 +192,6 @@ export default function VideoPlayer({
         seeking.current = false;
         player.currentTime = updatedTimestamp;
         handleControlToggle(false);
-        // setOp(null);
         timeoutId = null;
       }, 500);
     };
@@ -196,27 +220,44 @@ export default function VideoPlayer({
   // timestamp tracker
   useEffect(() => {
     if (isPlaying) {
-      if (intervalId.current === null) {
-        intervalId.current = setInterval(() => {
+      if (timestampIntervalId.current === null) {
+        timestampIntervalId.current = setInterval(() => {
           if (!seeking.current) {
             updateTimestampStates(player.currentTime);
           }
         }, 1000);
       }
+
+      if (subtitleEnabled.current && subtitleIntervalId.current === null) {
+        subtitleIntervalId.current = setInterval(() => {
+          if (!seeking.current) {
+            updateSubtitle(player.currentTime);
+          }
+        }, 500);
+      }
     } else {
-      if (intervalId.current !== null) {
-        clearInterval(intervalId.current);
-        intervalId.current = null;
+      if (timestampIntervalId.current !== null) {
+        clearInterval(timestampIntervalId.current);
+        timestampIntervalId.current = null;
         if (!seeking.current) {
           updateTimestampStates(player.currentTime);
         }
       }
+
+      if (subtitleIntervalId.current !== null) {
+        clearInterval(subtitleIntervalId.current);
+        subtitleIntervalId.current = null;
+      }
     }
 
     return () => {
-      if (intervalId.current !== null) {
-        clearInterval(intervalId.current);
-        intervalId.current = null;
+      if (timestampIntervalId.current !== null) {
+        clearInterval(timestampIntervalId.current);
+        timestampIntervalId.current = null;
+      }
+      if (subtitleIntervalId.current !== null) {
+        clearInterval(subtitleIntervalId.current);
+        subtitleIntervalId.current = null;
       }
     };
   }, [isPlaying, player]);
@@ -230,7 +271,7 @@ export default function VideoPlayer({
 
   return (
     <Pressable
-      className="flex-1 w-full h-full bg-black justify-center relative cursor-default"
+      className={`flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none ${showControls ? "cursor-default" : "cursor-none"}`}
       ref={playerRef}
       {...(Platform.OS === "web"
         ? {
@@ -256,8 +297,19 @@ export default function VideoPlayer({
         />
         <Feedback>{feedback}</Feedback>
 
+        {subtitle?.trim() ? (
+          <View
+            pointerEvents="none"
+            className="absolute bottom-6 sm:bottom-12 md:bottom-20 lg:bottom-24 w-full px-4 items-center justify-center z-10"
+          >
+            <Text className="max-w-[85%] sm:max-w-xl md:max-w-2xl lg:max-w-3xl bg-black/80 text-white font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded leading-snug">
+              {subtitle.trim()}
+            </Text>
+          </View>
+        ) : null}
+
         <View
-          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 ${
+          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 z-30 ${
             showControls ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -291,7 +343,7 @@ export default function VideoPlayer({
                 onNext={next}
                 onPrev={prev}
                 playPause={playPause}
-                subtitleToggle={() => setSubtileEnabled((prev) => !prev)}
+                subtitleToggle={toggleSubtitle}
                 updateTimestamp={seekTimestamp()}
               />
 
@@ -370,17 +422,16 @@ export default function VideoPlayer({
                   </View>
 
                   {/* Utility Controls */}
-                  {/* TODO: not implemented yet */}
                   <View className="flex-row items-center gap-2 sm:gap-4">
                     <Pressable
                       disabled={video.subtitle === null}
-                      onPress={() => setSubtileEnabled((prev) => !prev)}
+                      onPress={toggleSubtitle}
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                     >
                       <Text>
                         {video.subtitle === null ? (
                           <CaptionsOff color="#52525b" size={22} />
-                        ) : subtileEnabled ? (
+                        ) : subtitleEnabled.current ? (
                           <Captions color="#60a5fa" size={22} />
                         ) : (
                           <CaptionsOff color="#fff" size={22} />

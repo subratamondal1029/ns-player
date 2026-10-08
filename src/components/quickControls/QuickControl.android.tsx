@@ -37,6 +37,7 @@ const QuickControl = ({ updateTimestamp, playPause }: QuickControlProps) => {
       // }
     });
 
+  // FIXME: improve skipping with double click trigger and single click to carry on
   const rightGesture = Gesture.Exclusive(createDoubleTap("right"), verticalPan);
 
   return (
