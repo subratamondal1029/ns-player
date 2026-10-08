@@ -28,9 +28,16 @@ Synchronization works completely offline over your local Wi-Fi / LAN network:
 
 ## Usage Requirements & Conventions
 
-To ensure proper media tracking and synchronization across devices:
+To ensure proper media tracking, subtitle loading, and synchronization across devices:
 
-- **File Naming Convention**: Video files within a playlist must follow sequential numbering prefix format (e.g., `001`, `002`, `003`, etc.).
+- **Video Naming Convention**: Video files within a playlist must follow sequential numbering prefix format (e.g., `001`, `002`, `003`, etc.).
+- **Subtitle Support (English only for now)**: Single-track `.srt` subtitle files matching the video base name with the `.en.srt` extension will be loaded and synchronized automatically.
+
+| Type         | Format / Example            |
+| :----------- | :-------------------------- |
+| **Video**    | `001 - Introduction.mp4`    |
+| **Subtitle** | `001 - Introduction.en.srt` |
+
 - **Playlist Key**: The playlist key/name entered by the user must match identically on both Linux and Android.
 - **Firewall & Network**: Port `4920` must be open and accessible on the local network.
 - **Linux Prerequisites**: **Google Chrome** must be pre-installed on the host system.
@@ -60,8 +67,8 @@ Official pre-built binaries are available on the [Releases](https://github.com/s
 
 ## Roadmap
 
+- [x] Subtitle support (Single-track English `.en.srt`)
 - [ ] Improved double-tap skip functionality
-- [ ] Subtitle support
 - [ ] Pan-gesture volume controls
 - [ ] Automatic local network device discovery and seamless background sync
 
