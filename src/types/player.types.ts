@@ -1,8 +1,10 @@
+import { Dialogue } from "@ltftf/srt-parser-2";
+
 export interface PlayerVideo {
   title: string;
   uri: string;
   initialTimestamp: number;
-  subtitle: string | null;
+  subtitle: Dialogue[] | null;
 }
 
 export interface VideoPlayerProps {
