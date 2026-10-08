@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  *:focus,
+  *:focus-visible,
+  [role="button"]:focus,
+  [role="button"]:focus-visible,
+  button:focus,
+  button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
