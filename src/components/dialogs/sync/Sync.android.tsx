@@ -1,4 +1,5 @@
 import { useTimestamp } from "@/context/timestampContext";
+import { saveTimestampState } from "@/services/storage/storage";
 import { syncTimestamp } from "@/services/sync/sync";
 import { Timestamp } from "@/types/timestamp.types";
 import {
@@ -47,6 +48,7 @@ const Sync = ({
 
       if (timestamp) {
         resetTimestamp(timestamp);
+        await saveTimestampState(timestamp);
       }
     } catch (error) {
       console.error(error, (error as Error).cause);
