@@ -78,3 +78,20 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		Data:    timestamp,
 	}, nil)
 }
+
+func ResetTimestamp(w http.ResponseWriter, r *http.Request) {
+	playlist := r.PathValue("playlist")
+
+	if err := service.ResetTimestamp(playlist); err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to reset timestamp",
+		}, err)
+		return
+	}
+
+	pkgs.SendResponse(w, pkgs.ApiResponse{
+		Status:  http.StatusOK,
+		Message: "timestamp reset successfully",
+	}, nil)
+}

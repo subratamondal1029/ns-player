@@ -71,10 +71,36 @@ const loadTimestampState = async (
   }
 };
 
+const resetTimestamp = async (playlist: string): Promise<void> => {
+  try {
+    const existingPlaylist = await loadTimestampState(playlist);
+
+    if (existingPlaylist && existingPlaylist.playlist === playlist) {
+      return; // already existing playlist no need to overwrite
+    }
+
+    await saveTimestampState({
+      playlist,
+      current: {
+        index: 0,
+        timestamp: 0.0,
+      },
+      previous: {
+        index: 0,
+        timestamp: 0.0,
+      },
+    });
+  } catch (error) {
+    console.error("Timestamp state reset failed", error);
+    throw new Error("Timestamp state reset failed", { cause: error });
+  }
+};
+
 export {
   checkDirExist,
   loadDir,
   loadTimestampState,
+  resetTimestamp,
   saveDir,
   saveTimestampState
 };

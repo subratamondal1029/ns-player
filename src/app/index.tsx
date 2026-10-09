@@ -18,6 +18,7 @@ import {
   checkDirExist,
   loadDir,
   loadTimestampState,
+  resetTimestamp as resetTimestampState,
   saveDir,
 } from "@/services/storage/storage";
 import { findVideos } from "@/services/video/video";
@@ -100,6 +101,7 @@ export default function App() {
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
       await saveDir(dir, playlist);
+      await resetTimestampState(playlist);
       saveLocalState(dir, playlist);
     } catch (error) {
       console.error(error);

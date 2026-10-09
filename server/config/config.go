@@ -9,18 +9,29 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type ENV string
+
+const (
+	ENVDevelopment ENV = "development"
+	ENVProduction  ENV = "production"
+)
+
 type Config struct {
 	AppName     string
 	AppNameSlug string
-	StateDir    string
+	StatePath   string
 	Port        string
 	Origin      string
+	Env         ENV
 }
 
 var config Config
 
 func init() {
 	_ = godotenv.Load(".env.local", "server/.env.local")
+
+	// Environment
+	env := ENV(getEnv("ENV", "production"))
 
 	// app info
 	appName := getEnv("APP_NAME", "NS Player")
@@ -39,7 +50,12 @@ func init() {
 		log.Fatalf("Error creating state directory: %v", err)
 	}
 
-	timestampStatePath := filepath.Join(appConfPath, "timestamps.json")
+	stateFileName := "timestamps.json"
+	if env == ENVDevelopment {
+		stateFileName = "timestamps_dev.json"
+	}
+
+	timestampStatePath := filepath.Join(appConfPath, stateFileName)
 
 	timestampStat, err := os.Stat(timestampStatePath)
 
@@ -58,9 +74,10 @@ func init() {
 	config = Config{
 		AppName:     appName,
 		AppNameSlug: appNameSlug,
-		StateDir:    appConfPath,
+		StatePath:   timestampStatePath,
 		Port:        getEnv("PORT", "4920"),
 		Origin:      getEnv("ORIGIN", "http://localhost:8081"),
+		Env:         env,
 	}
 }
 
