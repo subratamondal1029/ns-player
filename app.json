@@ -2,7 +2,7 @@
   "expo": {
     "name": "ns-player",
     "slug": "ns-player",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "orientation": "portrait",
     "icon": "./assets/ios/AppIcon~ios-marketing.png",
     "scheme": "nsplayer",
@@ -25,7 +25,7 @@
     },
     "android": {
       "package": "com.subratamondal.nsplayer",
-      "versionCode": 3,
+      "versionCode": 4,
       "userInterfaceStyle": "dark",
       "splash": {
         "backgroundColor": "#0a0a0a",

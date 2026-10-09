@@ -43,7 +43,14 @@ export default function VideoPlayer({
   updateHistory,
 }: VideoPlayerProps) {
   const player = useVideoPlayer(video.uri);
+
   const [showControls, setShowControls] = useState<boolean>(true);
+  const [readyVideo, setReadyVideo] = useState<boolean>(false);
+  const [subtitle, setSubtitle] = useState<string>("");
+  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
+  const [timestamp, setTimestamp] = useState<number>(
+    video.initialTimestamp || 0,
+  );
 
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
@@ -52,16 +59,12 @@ export default function VideoPlayer({
   const controlsVisibleTimeout = useRef<number | null>(null);
 
   const seeking = useRef<boolean>(false);
-  const [readyVideo, setReadyVideo] = useState<boolean>(false);
+  const seekTimeoutId = useRef<number | null>(null);
+  const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
+  const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
   const subtitleIntervalId = useRef<number | null>(null);
   const subtitleEnabled = useRef<boolean>(video.subtitle !== null);
-  const [subtitle, setSubtitle] = useState<string>("");
-  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
   const feedbackTimeout = useRef<number | null>(null);
-
-  const [timestamp, setTimestamp] = useState<number>(
-    video.initialTimestamp || 0,
-  );
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
     [timestamp, player.duration],
@@ -149,59 +152,81 @@ export default function VideoPlayer({
     }
   };
 
-  const updateTimestampStates = (timestamp: number) => {
-    setTimestamp(timestamp);
-    updateHistory(timestamp);
-  };
-
-  const seekTimestamp = () => {
-    let timeoutId: number | null = null;
-    let updatedTimestamp: number = timestamp;
-
-    return (count: number, fwd: boolean = true) => {
-      handleControlToggle(true);
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-
-      seeking.current = true;
-
-      let newTimestamp: number;
-      if (count === 0) {
-        newTimestamp = 0;
-      } else {
-        if (fwd) {
-          newTimestamp = Math.min(player.duration, updatedTimestamp + count);
-        } else {
-          newTimestamp = Math.max(0, updatedTimestamp - count);
-        }
-      }
-
-      updatedTimestamp = newTimestamp;
-      updateTimestampStates(updatedTimestamp);
-      if (newTimestamp !== 0) {
-        triggerFeedback(
-          <SkipFeedback
-            fwd={fwd}
-            count={Math.abs(Math.floor(updatedTimestamp - timestamp))}
-          />,
-        );
-      }
-      timeoutId = setTimeout(() => {
-        seeking.current = false;
-        player.currentTime = updatedTimestamp;
-        handleControlToggle(false);
-        timeoutId = null;
-      }, 500);
-    };
-  };
-
-  const onSeek = (value: number) => {
-    if (!readyVideo) return;
-    const newTimestamp = (value / 100) * player.duration;
-    player.currentTime = newTimestamp;
+  const updateTimestampStates = (newTimestamp: number) => {
     setTimestamp(newTimestamp);
+    updateHistory(newTimestamp);
+    if (!seeking.current) {
+      accumulatedTimestamp.current = newTimestamp;
+    }
+  };
+
+  // Double-tap and keypress timestamp change
+  const seekTimestamp = (count: number, fwd: boolean = true) => {
+    handleControlToggle(true);
+
+    if (seekTimeoutId.current !== null) {
+      clearTimeout(seekTimeoutId.current);
+      seekTimeoutId.current = null;
+    }
+
+    if (!seeking.current) {
+      seeking.current = true;
+      seekBaseTimestamp.current = accumulatedTimestamp.current;
+    }
+
+    let newTimestamp: number;
+    if (count === 0) {
+      newTimestamp = 0;
+    } else {
+      if (fwd) {
+        newTimestamp = Math.min(
+          player.duration,
+          accumulatedTimestamp.current + count,
+        );
+      } else {
+        newTimestamp = Math.max(0, accumulatedTimestamp.current - count);
+      }
+    }
+
+    accumulatedTimestamp.current = newTimestamp;
+    updateTimestampStates(newTimestamp);
+
+    if (count !== 0) {
+      triggerFeedback(
+        <SkipFeedback
+          fwd={fwd}
+          count={Math.abs(Math.floor(newTimestamp - seekBaseTimestamp.current))}
+        />,
+      );
+    }
+
+    seekTimeoutId.current = setTimeout(() => {
+      seeking.current = false;
+      player.currentTime = accumulatedTimestamp.current;
+      handleControlToggle(false);
+      seekTimeoutId.current = null;
+    }, 500);
+  };
+
+  // slider timestamp change
+  const onSlidingStart = () => {
+    seeking.current = true;
+    handleControlToggle(true);
+  };
+
+  const onSeekChange = (value: number) => {
+    if (!readyVideo) return;
+    seeking.current = true;
+    const newTimestamp = (value / 100) * player.duration;
+    setTimestamp(newTimestamp);
+  };
+
+  const onSeekComplete = (value: number) => {
+    if (!readyVideo) return;
+    const targetTimestamp = (value / 100) * player.duration;
+    player.currentTime = targetTimestamp;
+    updateTimestampStates(targetTimestamp);
+    seeking.current = false;
   };
 
   // initial video load
@@ -295,7 +320,6 @@ export default function VideoPlayer({
           allowsPictureInPicture
           fullscreenOptions={{ enable: false }}
         />
-        <Feedback>{feedback}</Feedback>
 
         {subtitle?.trim() ? (
           <View
@@ -344,7 +368,7 @@ export default function VideoPlayer({
                 onPrev={prev}
                 playPause={playPause}
                 subtitleToggle={toggleSubtitle}
-                updateTimestamp={seekTimestamp()}
+                updateTimestamp={seekTimestamp}
               />
 
               {/* main controls */}
@@ -365,7 +389,9 @@ export default function VideoPlayer({
                     maximumValue={100}
                     step={1}
                     value={progress}
-                    onValueChange={onSeek}
+                    onSlidingStart={onSlidingStart}
+                    onValueChange={onSeekChange}
+                    onSlidingComplete={onSeekComplete}
                     tapToSeek
                     minimumTrackTintColor="#3b82f6"
                     maximumTrackTintColor="#d5dbe8"
@@ -452,6 +478,8 @@ export default function VideoPlayer({
             </View>
           )}
         </View>
+
+        <Feedback>{feedback}</Feedback>
       </View>
     </Pressable>
   );

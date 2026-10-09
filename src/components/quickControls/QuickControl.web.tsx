@@ -1,5 +1,5 @@
 import { QuickControlProps } from "@/types/player.types";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Pressable } from "react-native";
 
 const QuickControl = ({
@@ -9,7 +9,7 @@ const QuickControl = ({
   subtitleToggle,
   updateTimestamp,
 }: QuickControlProps) => {
-  const controls: Record<string, () => void> = {
+  const controlsRef = useRef<Record<string, () => void>>({
     k: playPause,
     " ": playPause,
     N: onNext,
@@ -18,13 +18,15 @@ const QuickControl = ({
     ArrowLeft: () => updateTimestamp(10, false),
     ArrowRight: () => updateTimestamp(10, true),
     Home: () => updateTimestamp(0),
-  };
+  });
 
   useEffect(() => {
     const globalKeyEvent = (e: KeyboardEvent) => {
-      e.preventDefault();
-
-      controls[e.key]?.();
+      const action = controlsRef.current[e.key];
+      if (action) {
+        e.preventDefault();
+        action();
+      }
     };
 
     window.addEventListener("keydown", globalKeyEvent);
