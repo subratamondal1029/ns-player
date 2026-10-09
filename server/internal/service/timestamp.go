@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/subratamondal1029/ns-player/config"
 )
@@ -19,6 +18,16 @@ type Timestamp struct {
 	Playlist string   `json:"playlist" validate:"required,min=3"`
 	Previous position `json:"previous"`
 	Current  position `json:"current" validate:"required"`
+}
+
+var defaultPosition = position{
+	Index:     new(0),
+	Timestamp: new(0.0),
+}
+
+var defaultTimestamp = Timestamp{
+	Previous: defaultPosition,
+	Current:  defaultPosition,
 }
 
 func DecodeTimestampJson(data io.ReadCloser) (*Timestamp, error) {
@@ -46,13 +55,13 @@ func SaveTimestamp(timestamp *Timestamp) error {
 		return err
 	}
 
-	return os.WriteFile(filepath.Join(conf.StateDir, "timestamps.json"), data, 0644)
+	return os.WriteFile(conf.StatePath, data, 0644)
 }
 
 func GetTimestamp() (*Timestamp, error) {
 	conf := config.Get()
 
-	data, err := os.ReadFile(filepath.Join(conf.StateDir, "timestamps.json"))
+	data, err := os.ReadFile(conf.StatePath)
 	if err != nil {
 		return nil, err
 	}
@@ -64,4 +73,10 @@ func GetTimestamp() (*Timestamp, error) {
 	}
 
 	return &timestamp, nil
+}
+
+func ResetTimestamp(playlist string) error {
+	timestamp := defaultTimestamp
+	timestamp.Playlist = playlist
+	return SaveTimestamp(&timestamp)
 }
