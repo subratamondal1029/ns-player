@@ -305,7 +305,6 @@ export default function VideoPlayer({
           allowsPictureInPicture
           fullscreenOptions={{ enable: false }}
         />
-        <Feedback>{feedback}</Feedback>
 
         {subtitle?.trim() ? (
           <View
@@ -462,6 +461,8 @@ export default function VideoPlayer({
             </View>
           )}
         </View>
+
+        <Feedback>{feedback}</Feedback>
       </View>
     </Pressable>
   );
