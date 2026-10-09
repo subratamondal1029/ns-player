@@ -76,6 +76,12 @@ func GetTimestamp() (*Timestamp, error) {
 }
 
 func ResetTimestamp(playlist string) error {
+	existingPlaylist, err := GetTimestamp()
+
+	if err == nil && existingPlaylist != nil && existingPlaylist.Playlist == playlist {
+		return nil // already existing playlist no need to overwrite
+	}
+
 	timestamp := defaultTimestamp
 	timestamp.Playlist = playlist
 	return SaveTimestamp(&timestamp)

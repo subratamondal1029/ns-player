@@ -73,6 +73,12 @@ const loadTimestampState = async (
 
 const resetTimestamp = async (playlist: string): Promise<void> => {
   try {
+    const existingPlaylist = await loadTimestampState(playlist);
+
+    if (existingPlaylist && existingPlaylist.playlist === playlist) {
+      return; // already existing playlist no need to overwrite
+    }
+
     await saveTimestampState({
       playlist,
       current: {
