@@ -43,7 +43,14 @@ export default function VideoPlayer({
   updateHistory,
 }: VideoPlayerProps) {
   const player = useVideoPlayer(video.uri);
+
   const [showControls, setShowControls] = useState<boolean>(true);
+  const [readyVideo, setReadyVideo] = useState<boolean>(false);
+  const [subtitle, setSubtitle] = useState<string>("");
+  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
+  const [timestamp, setTimestamp] = useState<number>(
+    video.initialTimestamp || 0,
+  );
 
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
@@ -55,16 +62,9 @@ export default function VideoPlayer({
   const seekTimeoutId = useRef<number | null>(null);
   const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
   const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
-  const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const subtitleIntervalId = useRef<number | null>(null);
   const subtitleEnabled = useRef<boolean>(video.subtitle !== null);
-  const [subtitle, setSubtitle] = useState<string>("");
-  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
   const feedbackTimeout = useRef<number | null>(null);
-
-  const [timestamp, setTimestamp] = useState<number>(
-    video.initialTimestamp || 0,
-  );
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
     [timestamp, player.duration],
