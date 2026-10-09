@@ -160,6 +160,7 @@ export default function VideoPlayer({
     }
   };
 
+  // Double-tap and keypress timestamp change
   const seekTimestamp = (count: number, fwd: boolean = true) => {
     handleControlToggle(true);
 
@@ -207,11 +208,25 @@ export default function VideoPlayer({
     }, 500);
   };
 
-  const onSeek = (value: number) => {
+  // slider timestamp change
+  const onSlidingStart = () => {
+    seeking.current = true;
+    handleControlToggle(true);
+  };
+
+  const onSeekChange = (value: number) => {
     if (!readyVideo) return;
+    seeking.current = true;
     const newTimestamp = (value / 100) * player.duration;
-    player.currentTime = newTimestamp;
     setTimestamp(newTimestamp);
+  };
+
+  const onSeekComplete = (value: number) => {
+    if (!readyVideo) return;
+    const targetTimestamp = (value / 100) * player.duration;
+    player.currentTime = targetTimestamp;
+    updateTimestampStates(targetTimestamp);
+    seeking.current = false;
   };
 
   // initial video load
@@ -374,7 +389,9 @@ export default function VideoPlayer({
                     maximumValue={100}
                     step={1}
                     value={progress}
-                    onValueChange={onSeek}
+                    onSlidingStart={onSlidingStart}
+                    onValueChange={onSeekChange}
+                    onSlidingComplete={onSeekComplete}
                     tapToSeek
                     minimumTrackTintColor="#3b82f6"
                     maximumTrackTintColor="#d5dbe8"
