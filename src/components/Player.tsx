@@ -52,6 +52,9 @@ export default function VideoPlayer({
   const controlsVisibleTimeout = useRef<number | null>(null);
 
   const seeking = useRef<boolean>(false);
+  const seekTimeoutId = useRef<number | null>(null);
+  const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
+  const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const subtitleIntervalId = useRef<number | null>(null);
   const subtitleEnabled = useRef<boolean>(video.subtitle !== null);
@@ -149,52 +152,59 @@ export default function VideoPlayer({
     }
   };
 
-  const updateTimestampStates = (timestamp: number) => {
-    setTimestamp(timestamp);
-    updateHistory(timestamp);
+  const updateTimestampStates = (newTimestamp: number) => {
+    setTimestamp(newTimestamp);
+    updateHistory(newTimestamp);
+    if (!seeking.current) {
+      accumulatedTimestamp.current = newTimestamp;
+    }
   };
 
-  const seekTimestamp = () => {
-    let timeoutId: number | null = null;
-    let updatedTimestamp: number = timestamp;
+  const seekTimestamp = (count: number, fwd: boolean = true) => {
+    handleControlToggle(true);
 
-    return (count: number, fwd: boolean = true) => {
-      handleControlToggle(true);
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
+    if (seekTimeoutId.current !== null) {
+      clearTimeout(seekTimeoutId.current);
+      seekTimeoutId.current = null;
+    }
 
+    if (!seeking.current) {
       seeking.current = true;
+      seekBaseTimestamp.current = accumulatedTimestamp.current;
+    }
 
-      let newTimestamp: number;
-      if (count === 0) {
-        newTimestamp = 0;
-      } else {
-        if (fwd) {
-          newTimestamp = Math.min(player.duration, updatedTimestamp + count);
-        } else {
-          newTimestamp = Math.max(0, updatedTimestamp - count);
-        }
-      }
-
-      updatedTimestamp = newTimestamp;
-      updateTimestampStates(updatedTimestamp);
-      if (newTimestamp !== 0) {
-        triggerFeedback(
-          <SkipFeedback
-            fwd={fwd}
-            count={Math.abs(Math.floor(updatedTimestamp - timestamp))}
-          />,
+    let newTimestamp: number;
+    if (count === 0) {
+      newTimestamp = 0;
+    } else {
+      if (fwd) {
+        newTimestamp = Math.min(
+          player.duration,
+          accumulatedTimestamp.current + count,
         );
+      } else {
+        newTimestamp = Math.max(0, accumulatedTimestamp.current - count);
       }
-      timeoutId = setTimeout(() => {
-        seeking.current = false;
-        player.currentTime = updatedTimestamp;
-        handleControlToggle(false);
-        timeoutId = null;
-      }, 500);
-    };
+    }
+
+    accumulatedTimestamp.current = newTimestamp;
+    updateTimestampStates(newTimestamp);
+
+    if (count !== 0) {
+      triggerFeedback(
+        <SkipFeedback
+          fwd={fwd}
+          count={Math.abs(Math.floor(newTimestamp - seekBaseTimestamp.current))}
+        />,
+      );
+    }
+
+    seekTimeoutId.current = setTimeout(() => {
+      seeking.current = false;
+      player.currentTime = accumulatedTimestamp.current;
+      handleControlToggle(false);
+      seekTimeoutId.current = null;
+    }, 500);
   };
 
   const onSeek = (value: number) => {
@@ -344,7 +354,7 @@ export default function VideoPlayer({
                 onPrev={prev}
                 playPause={playPause}
                 subtitleToggle={toggleSubtitle}
-                updateTimestamp={seekTimestamp()}
+                updateTimestamp={seekTimestamp}
               />
 
               {/* main controls */}
