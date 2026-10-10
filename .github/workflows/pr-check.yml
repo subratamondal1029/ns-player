@@ -7,6 +7,7 @@ on:
 
 jobs:
   verify-version:
+    if: github.head_ref != 'doc'
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
@@ -30,3 +31,5 @@ jobs:
           fi
 
           echo "version=$local_v" >> "$GITHUB_OUTPUT"
+
+# TODO: add job to check only doc change no code changes
