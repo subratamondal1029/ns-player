@@ -2,73 +2,37 @@ package config
 
 import (
 	"log"
-	"net"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/gosimple/slug"
+	"github.com/joho/godotenv"
+)
+
+type ENV string
+
+const (
+	ENVDevelopment ENV = "development"
+	ENVProduction  ENV = "production"
 )
 
 type Config struct {
 	AppName     string
 	AppNameSlug string
-	StateDir    string
+	StatePath   string
 	Port        string
 	Origin      string
-	Ip          string
+	Env         ENV
 }
 
 var config Config
 
-func getIp() string {
-	interfaces, err := net.Interfaces()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var ip string
-
-	for _, iface := range interfaces {
-		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
-			continue
-		}
-
-		// Ignore Docker/virtual bridge interfaces
-		if strings.HasPrefix(iface.Name, "docker") ||
-			strings.HasPrefix(iface.Name, "br-") {
-			continue
-		}
-
-		addrs, err := iface.Addrs()
-		if err != nil {
-			continue
-		}
-
-		for _, addr := range addrs {
-			ipnet, ok := addr.(*net.IPNet)
-			if !ok {
-				continue
-			}
-
-			ipv4 := ipnet.IP.To4()
-			if ipv4 == nil {
-				continue
-			}
-
-			ip = ipv4.String()
-			break
-		}
-
-		if ip != "" {
-			break
-		}
-	}
-
-	return ip
-}
-
 func init() {
+	_ = godotenv.Load(".env.local", "server/.env.local")
+
+	// Environment
+	env := ENV(getEnv("ENV", "production"))
+
 	// app info
 	appName := getEnv("APP_NAME", "NS Player")
 	appNameSlug := slug.Make(appName)
@@ -86,7 +50,12 @@ func init() {
 		log.Fatalf("Error creating state directory: %v", err)
 	}
 
-	timestampStatePath := filepath.Join(appConfPath, "timestamps.json")
+	stateFileName := "timestamps.json"
+	if env == ENVDevelopment {
+		stateFileName = "timestamps_dev.json"
+	}
+
+	timestampStatePath := filepath.Join(appConfPath, stateFileName)
 
 	timestampStat, err := os.Stat(timestampStatePath)
 
@@ -105,10 +74,10 @@ func init() {
 	config = Config{
 		AppName:     appName,
 		AppNameSlug: appNameSlug,
-		StateDir:    appConfPath,
+		StatePath:   timestampStatePath,
 		Port:        getEnv("PORT", "4920"),
 		Origin:      getEnv("ORIGIN", "http://localhost:8081"),
-		Ip:          getIp(),
+		Env:         env,
 	}
 }
 

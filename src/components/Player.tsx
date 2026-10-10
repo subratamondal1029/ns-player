@@ -1,5 +1,6 @@
 import { VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
+import { findSubtitle } from "@/utils/subtitleParser";
 import Slider from "@react-native-community/slider";
 import { useEvent, useEventListener } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
@@ -42,23 +43,28 @@ export default function VideoPlayer({
   updateHistory,
 }: VideoPlayerProps) {
   const player = useVideoPlayer(video.uri);
+
   const [showControls, setShowControls] = useState<boolean>(true);
+  const [readyVideo, setReadyVideo] = useState<boolean>(false);
+  const [subtitle, setSubtitle] = useState<string>("");
+  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
+  const [timestamp, setTimestamp] = useState<number>(
+    video.initialTimestamp || 0,
+  );
 
   const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
   const initialLoad = useRef<boolean>(false);
-  const intervalId = useRef<number | null>(null);
+  const timestampIntervalId = useRef<number | null>(null);
   const controlsVisibleTimeout = useRef<number | null>(null);
 
   const seeking = useRef<boolean>(false);
-  const [readyVideo, setReadyVideo] = useState<boolean>(false);
-  const [subtileEnabled, setSubtileEnabled] = useState<boolean>(false);
-  const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
+  const seekTimeoutId = useRef<number | null>(null);
+  const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
+  const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
+  const subtitleIntervalId = useRef<number | null>(null);
+  const subtitleEnabled = useRef<boolean>(video.subtitle !== null);
   const feedbackTimeout = useRef<number | null>(null);
-
-  const [timestamp, setTimestamp] = useState<number>(
-    video.initialTimestamp || 0,
-  );
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
     [timestamp, player.duration],
@@ -124,60 +130,103 @@ export default function VideoPlayer({
     triggerFeedback(feedBackCom);
   };
 
-  const updateTimestampStates = (timestamp: number) => {
-    setTimestamp(timestamp);
-    updateHistory(timestamp);
+  const toggleSubtitle = () => {
+    if (!video.subtitle) return;
+    subtitleEnabled.current = !subtitleEnabled.current;
+
+    if (subtitleEnabled.current) {
+      triggerFeedback(<Captions color="#fff" fill="transparent" size={40} />);
+    } else {
+      triggerFeedback(
+        <CaptionsOff color="#fff" fill="transparent" size={40} />,
+      );
+    }
   };
 
-  const seekTimestamp = () => {
-    let timeoutId: number | null = null;
-    let updatedTimestamp: number = timestamp;
-
-    return (count: number, fwd: boolean = true) => {
-      handleControlToggle(true);
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-
-      seeking.current = true;
-
-      let newTimestamp: number;
-      if (count === 0) {
-        newTimestamp = 0;
-      } else {
-        if (fwd) {
-          newTimestamp = Math.min(player.duration, updatedTimestamp + count);
-        } else {
-          newTimestamp = Math.max(0, updatedTimestamp - count);
-        }
-      }
-
-      updatedTimestamp = newTimestamp;
-      updateTimestampStates(updatedTimestamp);
-      if (newTimestamp !== 0) {
-        triggerFeedback(
-          <SkipFeedback
-            fwd={fwd}
-            count={Math.abs(Math.floor(updatedTimestamp - timestamp))}
-          />,
-        );
-      }
-      timeoutId = setTimeout(() => {
-        seeking.current = false;
-        player.currentTime = updatedTimestamp;
-        handleControlToggle(false);
-        // setOp(null);
-        timeoutId = null;
-      }, 500);
-    };
+  const updateSubtitle = (timestamp: number) => {
+    if (!video.subtitle || !player.playing) return;
+    if (subtitleEnabled.current) {
+      setSubtitle(findSubtitle(video.subtitle, timestamp + 0.3));
+    } else {
+      setSubtitle("");
+    }
   };
 
-  const onSeek = (value: number) => {
-    if (!readyVideo) return;
-    const newTimestamp = (value / 100) * player.duration;
-    player.currentTime = newTimestamp;
+  const updateTimestampStates = (newTimestamp: number) => {
     setTimestamp(newTimestamp);
+    updateHistory(newTimestamp);
+    if (!seeking.current) {
+      accumulatedTimestamp.current = newTimestamp;
+    }
+  };
+
+  // Double-tap and keypress timestamp change
+  const seekTimestamp = (count: number, fwd: boolean = true) => {
+    handleControlToggle(true);
+
+    if (seekTimeoutId.current !== null) {
+      clearTimeout(seekTimeoutId.current);
+      seekTimeoutId.current = null;
+    }
+
+    if (!seeking.current) {
+      seeking.current = true;
+      seekBaseTimestamp.current = accumulatedTimestamp.current;
+    }
+
+    let newTimestamp: number;
+    if (count === 0) {
+      newTimestamp = 0;
+    } else {
+      if (fwd) {
+        newTimestamp = Math.min(
+          player.duration,
+          accumulatedTimestamp.current + count,
+        );
+      } else {
+        newTimestamp = Math.max(0, accumulatedTimestamp.current - count);
+      }
+    }
+
+    accumulatedTimestamp.current = newTimestamp;
+    updateTimestampStates(newTimestamp);
+
+    if (count !== 0) {
+      triggerFeedback(
+        <SkipFeedback
+          fwd={fwd}
+          count={Math.abs(Math.floor(newTimestamp - seekBaseTimestamp.current))}
+        />,
+      );
+    }
+
+    seekTimeoutId.current = setTimeout(() => {
+      seeking.current = false;
+      player.currentTime = accumulatedTimestamp.current;
+      handleControlToggle(false);
+      seekTimeoutId.current = null;
+    }, 500);
+  };
+
+  // slider timestamp change
+  const onSlidingStart = () => {
+    seeking.current = true;
+    handleControlToggle(true);
+  };
+
+  const onSeekChange = (value: number) => {
+    if (!readyVideo) return;
+    seeking.current = true;
+    const newTimestamp = (value / 100) * player.duration;
+    setTimestamp(newTimestamp);
+  };
+
+  const onSeekComplete = (value: number) => {
+    if (!readyVideo) return;
+    const targetTimestamp = (value / 100) * player.duration;
+    player.currentTime = targetTimestamp;
+    updateTimestampStates(targetTimestamp);
+    seeking.current = false;
   };
 
   // initial video load
@@ -196,27 +245,44 @@ export default function VideoPlayer({
   // timestamp tracker
   useEffect(() => {
     if (isPlaying) {
-      if (intervalId.current === null) {
-        intervalId.current = setInterval(() => {
+      if (timestampIntervalId.current === null) {
+        timestampIntervalId.current = setInterval(() => {
           if (!seeking.current) {
             updateTimestampStates(player.currentTime);
           }
         }, 1000);
       }
+
+      if (subtitleEnabled.current && subtitleIntervalId.current === null) {
+        subtitleIntervalId.current = setInterval(() => {
+          if (!seeking.current) {
+            updateSubtitle(player.currentTime);
+          }
+        }, 500);
+      }
     } else {
-      if (intervalId.current !== null) {
-        clearInterval(intervalId.current);
-        intervalId.current = null;
+      if (timestampIntervalId.current !== null) {
+        clearInterval(timestampIntervalId.current);
+        timestampIntervalId.current = null;
         if (!seeking.current) {
           updateTimestampStates(player.currentTime);
         }
       }
+
+      if (subtitleIntervalId.current !== null) {
+        clearInterval(subtitleIntervalId.current);
+        subtitleIntervalId.current = null;
+      }
     }
 
     return () => {
-      if (intervalId.current !== null) {
-        clearInterval(intervalId.current);
-        intervalId.current = null;
+      if (timestampIntervalId.current !== null) {
+        clearInterval(timestampIntervalId.current);
+        timestampIntervalId.current = null;
+      }
+      if (subtitleIntervalId.current !== null) {
+        clearInterval(subtitleIntervalId.current);
+        subtitleIntervalId.current = null;
       }
     };
   }, [isPlaying, player]);
@@ -230,7 +296,7 @@ export default function VideoPlayer({
 
   return (
     <Pressable
-      className="flex-1 w-full h-full bg-black justify-center relative cursor-default"
+      className={`flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none ${showControls ? "cursor-default" : "cursor-none"}`}
       ref={playerRef}
       {...(Platform.OS === "web"
         ? {
@@ -254,10 +320,20 @@ export default function VideoPlayer({
           allowsPictureInPicture
           fullscreenOptions={{ enable: false }}
         />
-        <Feedback>{feedback}</Feedback>
+
+        {subtitle?.trim() ? (
+          <View
+            pointerEvents="none"
+            className="absolute bottom-6 sm:bottom-12 md:bottom-20 lg:bottom-24 w-full px-4 items-center justify-center z-10"
+          >
+            <Text className="max-w-[85%] sm:max-w-xl md:max-w-2xl lg:max-w-3xl bg-black/80 text-white font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded leading-snug">
+              {subtitle.trim()}
+            </Text>
+          </View>
+        ) : null}
 
         <View
-          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 ${
+          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 z-30 ${
             showControls ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
         >
@@ -291,8 +367,9 @@ export default function VideoPlayer({
                 onNext={next}
                 onPrev={prev}
                 playPause={playPause}
-                subtitleToggle={() => setSubtileEnabled((prev) => !prev)}
-                updateTimestamp={seekTimestamp()}
+                subtitleToggle={toggleSubtitle}
+                updateTimestamp={seekTimestamp}
+                hideControls={() => handleControlToggle(false)}
               />
 
               {/* main controls */}
@@ -313,7 +390,9 @@ export default function VideoPlayer({
                     maximumValue={100}
                     step={1}
                     value={progress}
-                    onValueChange={onSeek}
+                    onSlidingStart={onSlidingStart}
+                    onValueChange={onSeekChange}
+                    onSlidingComplete={onSeekComplete}
                     tapToSeek
                     minimumTrackTintColor="#3b82f6"
                     maximumTrackTintColor="#d5dbe8"
@@ -370,17 +449,16 @@ export default function VideoPlayer({
                   </View>
 
                   {/* Utility Controls */}
-                  {/* TODO: not implemented yet */}
                   <View className="flex-row items-center gap-2 sm:gap-4">
                     <Pressable
                       disabled={video.subtitle === null}
-                      onPress={() => setSubtileEnabled((prev) => !prev)}
+                      onPress={toggleSubtitle}
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                     >
                       <Text>
                         {video.subtitle === null ? (
                           <CaptionsOff color="#52525b" size={22} />
-                        ) : subtileEnabled ? (
+                        ) : subtitleEnabled.current ? (
                           <Captions color="#60a5fa" size={22} />
                         ) : (
                           <CaptionsOff color="#fff" size={22} />
@@ -401,6 +479,8 @@ export default function VideoPlayer({
             </View>
           )}
         </View>
+
+        <Feedback>{feedback}</Feedback>
       </View>
     </Pressable>
   );

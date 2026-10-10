@@ -6,7 +6,7 @@ type TTimestampContext = {
   rawTimestamp: Timestamp | null;
   getTimestamp: (playlist: string, index: number) => number;
   setTimestamp: (playlist: string, index: number, timestamp: number) => void;
-  resetTimestamp: (timestamp: Timestamp | null) => void;
+  resetTimestamp: (timestamp: Timestamp | null, saveNow?: boolean) => void;
   lastPlayedVideoIdx: number;
 };
 
@@ -62,8 +62,11 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const resetTimestamp = (timestamp: Timestamp | null) => {
-    readyForStorage.current = false;
+  const resetTimestamp = (
+    timestamp: Timestamp | null,
+    saveNow: boolean = false,
+  ) => {
+    readyForStorage.current = saveNow;
     setTimestamp(timestamp);
   };
 

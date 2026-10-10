@@ -1,3 +1,4 @@
+import { useTimestamp } from "@/context/timestampContext";
 import { pickDir } from "@/services/folderPicker/picker";
 import { Dir } from "@/types/video.type";
 import { Check } from "lucide-react-native";
@@ -11,6 +12,7 @@ type UploadDialogProps = {
 };
 
 const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
+  const { resetTimestamp } = useTimestamp();
   const [playlist, setPlaylist] = useState("");
   const [dir, setDir] = useState<Dir | null>(null);
   const [error, setError] = useState("");
@@ -29,6 +31,7 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
       setPlaylist("");
       setDir(null);
       setVisible(false);
+      resetTimestamp(null);
     } else {
       setError("Please fill in all fields");
     }

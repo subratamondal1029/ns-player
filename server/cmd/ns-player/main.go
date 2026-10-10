@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/internal/handler"
 	"github.com/subratamondal1029/ns-player/internal/middleware"
@@ -18,6 +17,7 @@ func main() {
 	mux.HandleFunc("GET /api/health", handler.Health)
 	mux.HandleFunc("POST /api/timestamp", handler.StoreTimestamp)
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
+	mux.HandleFunc("POST /api/timestamp/{playlist}/reset", handler.ResetTimestamp)
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
 	mux.HandleFunc("/api/sync", handler.SyncTimestamp) // GET & PUT
 
