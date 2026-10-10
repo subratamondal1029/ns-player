@@ -6,7 +6,14 @@ on:
       - main
 
 jobs:
+  gate:
+    if: github.head_ref != 'doc'
+    runs-on: ubuntu-26.04
+    steps:
+      - run: echo "Gate check passed"
+
   verify-version:
+    needs: gate
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
