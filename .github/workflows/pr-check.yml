@@ -6,14 +6,8 @@ on:
       - main
 
 jobs:
-  gate:
-    if: github.head_ref != 'doc'
-    runs-on: ubuntu-26.04
-    steps:
-      - run: echo "Gate check passed"
-
   verify-version:
-    needs: gate
+    if: github.head_ref != 'doc'
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
@@ -37,3 +31,5 @@ jobs:
           fi
 
           echo "version=$local_v" >> "$GITHUB_OUTPUT"
+
+# TODO: add job to check only doc change no code changes
