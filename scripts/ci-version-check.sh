@@ -3,7 +3,7 @@
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 <target-branch>"
+    echo "Usage: $0 <target-branch>" >&2
     exit 1
 fi
 
@@ -17,17 +17,17 @@ APP_VERSION="$(jq -r '.expo.version' "$APP_JSON")"
 APP_VERSION_CODE="$(jq -r '.expo.android.versionCode' "$APP_JSON")"
 
 if [[ "$LOCAL_VERSION" != "$APP_VERSION" ]]; then
-    echo "::error::package.json ($LOCAL_VERSION) and app.json ($APP_VERSION) versions do not match"
+    echo "::error::package.json ($LOCAL_VERSION) and app.json ($APP_VERSION) versions do not match" >&2
     exit 1
 fi
 
 if ! [[ "$APP_VERSION_CODE" =~ ^[0-9]+$ ]]; then
-    echo "::error::Invalid android.versionCode in app.json: $APP_VERSION_CODE"
+    echo "::error::Invalid android.versionCode in app.json: $APP_VERSION_CODE" >&2
     exit 1
 fi
 
 if ! [[ "$LOCAL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$ ]]; then
-    echo "::error::Invalid SemVer: $LOCAL_VERSION"
+    echo "::error::Invalid SemVer: $LOCAL_VERSION" >&2
     exit 1
 fi
 
@@ -89,18 +89,18 @@ semver_greater() {
 case "$TARGET_BRANCH" in
     main)
         if [[ "$LOCAL_VERSION" == *-beta.* ]]; then
-            echo "::error::Beta version $LOCAL_VERSION is not allowed on main"
+            echo "::error::Beta version $LOCAL_VERSION is not allowed on main" >&2
             exit 1
         fi
         ;;
     dev/*)
         if [[ "$LOCAL_VERSION" != *-beta.* ]]; then
-            echo "::error::Version $LOCAL_VERSION must be a beta version on $TARGET_BRANCH"
+            echo "::error::Version $LOCAL_VERSION must be a beta version on $TARGET_BRANCH" >&2
             exit 1
         fi
         ;;
     *)
-        echo "::error::Unsupported target branch: $TARGET_BRANCH"
+        echo "::error::Unsupported target branch: $TARGET_BRANCH" >&2
         exit 1
         ;;
 esac
@@ -119,12 +119,12 @@ echo "local=$LOCAL_VERSION remote=${REMOTE_VERSION:-none}" >&2
 
 if [[ -n "$REMOTE_VERSION" ]]; then
     if [[ "$LOCAL_VERSION" == "$REMOTE_VERSION" ]]; then
-        echo "::error::Version $LOCAL_VERSION is already released"
+        echo "::error::Version $LOCAL_VERSION is already released" >&2
         exit 1
     fi
 
     if ! semver_greater "$LOCAL_VERSION" "$REMOTE_VERSION"; then
-        echo "::error::Local $LOCAL_VERSION is lower than remote $REMOTE_VERSION"
+        echo "::error::Local $LOCAL_VERSION is lower than remote $REMOTE_VERSION" >&2
         exit 1
     fi
 fi
