@@ -127,11 +127,22 @@ const loadTimestampState = async (
   }
 };
 
+const resetTimestamp = async (playlist: string): Promise<void> => {
+  try {
+    await apiFetch<null>(`${SERVER_URL}/timestamp/${playlist}/reset`, {
+      method: "POST",
+    });
+  } catch (error) {
+    console.error("Timestamp state reset failed", error);
+    throw new Error("Timestamp state reset failed", { cause: error });
+  }
+};
+
 export {
   checkDirExist,
   loadDir,
   loadTimestampState,
+  resetTimestamp,
   saveDir,
-  saveTimestampState
+  saveTimestampState,
 };
-

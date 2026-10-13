@@ -28,7 +28,16 @@ const loadTimestampState = async (
   throw new Error(`Timestamp state loading is not supported in ${Platform.OS}`);
 };
 
+const resetTimestamp = async (playlist: string): Promise<void> => {
+  throw new Error(
+    `Timestamp state resetting is not supported in ${Platform.OS}`,
+  );
+};
+
 export {
-  checkDirExist, loadDir, loadTimestampState, saveDir, saveTimestampState
+  checkDirExist,
+  loadDir,
+  loadTimestampState, resetTimestamp, saveDir,
+  saveTimestampState
 };
 

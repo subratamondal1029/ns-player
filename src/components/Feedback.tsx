@@ -44,7 +44,7 @@ export default function Feedback({ children }: FeedbackProps) {
   return (
     <View
       pointerEvents="none"
-      className="absolute inset-0 items-center justify-center z-30"
+      className="absolute inset-0 items-center justify-center z-50"
     >
       <Animated.View
         style={[
