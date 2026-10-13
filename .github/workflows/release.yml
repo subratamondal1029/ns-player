@@ -58,7 +58,7 @@ jobs:
           TARGET_BRANCH: ${{ needs.resolve-branch.outputs.target_branch }}
         run: |
           version=$(scripts/ci-version-check.sh "$TARGET_BRANCH")
-          echo "$version" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "target_branch=$TARGET_BRANCH" >> "$GITHUB_OUTPUT"
 
   release:

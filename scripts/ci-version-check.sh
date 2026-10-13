@@ -129,4 +129,4 @@ if [[ -n "$REMOTE_VERSION" ]]; then
     fi
 fi
 
-echo "version=$LOCAL_VERSION"
+echo "$LOCAL_VERSION"

@@ -48,9 +48,11 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
       - id: check
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          version=$(scripts/ci-version-check.sh "${{ github.base_ref }}")
-          echo "$version" >> "$GITHUB_OUTPUT"
+          version=$(scripts/ci-version-check.sh "$BASE_REF")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
   android-build:
     needs: verify-version
