@@ -9,8 +9,38 @@ on:
       - closed
 
 jobs:
-  verify-version:
+  check-docs:
     if: github.event.pull_request.merged == true
+    runs-on: ubuntu-26.04
+    outputs:
+      docs_only: ${{ steps.check.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: Check documentation-only changes
+        id: docs
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          files=$(git diff --name-only "$BASE_SHA" "$MERGE_SHA")
+
+          if [[ -n "$files" ]] && ! grep -qvE '\.md$' <<< "$files"; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if[[ ${{ steps.docs.outputs.docs_only }} == 'false' && ${{ github.head_ref }} != 'docs' ]]; then
+            echo "error::Non-documentation changes detected in documentation-only branch"
+            exit 1
+          fi
+
+  verify-version:
+    needs: check-docs
+    if: github.head_ref != 'docs' && ${{ steps.docs.outputs.docs_only }} == 'false'
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
