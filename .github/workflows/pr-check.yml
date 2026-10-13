@@ -4,32 +4,40 @@ on:
   pull_request:
     branches:
       - main
+      - "dev/**"
 
 jobs:
+  docs-check:
+    runs-on: ubuntu-26.04
+    outputs:
+      docs_only: ${{ steps.docs.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - id: docs
+        name: Check documentation-only changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MERGE_SHA: HEAD
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          docs_only=$(bash scripts/ci-docs-check.sh "$BASE_SHA" "$MERGE_SHA" "$HEAD_REF")
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+
   verify-version:
-    if: github.head_ref != 'doc'
+    needs: docs-check
+    if: github.head_ref != 'docs' && needs.docs-check.outputs.docs_only == 'false'
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
     steps:
       - uses: actions/checkout@v6
       - id: check
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          local_v=$(jq -r .version package.json)
-          remote_v=$(git ls-remote --tags --refs origin 'v*' \
-            | sed 's|.*refs/tags/v||' | sort -V | tail -n1)
-          echo "local=$local_v remote=${remote_v:-none}"
-
-          if [ -n "$remote_v" ]; then
-            if [ "$local_v" = "$remote_v" ]; then
-              echo "::error::Version $local_v is already released"; exit 1
-            fi
-            highest=$(printf '%s\n%s\n' "$remote_v" "$local_v" | sort -V | tail -n1)
-            if [ "$highest" != "$local_v" ]; then
-              echo "::error::Local $local_v is lower than remote $remote_v"; exit 1
-            fi
-          fi
-
-          echo "version=$local_v" >> "$GITHUB_OUTPUT"
-
-# TODO: add job to check only doc change no code changes
+          version=$(scripts/ci-version-check.sh "$BASE_REF")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "version check passed: $version"

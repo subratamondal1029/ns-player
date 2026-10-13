@@ -1,132 +1,84 @@
-name: release
+name: Release
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - closed
+  workflow_run:
+    workflows: ["Build"]
+    types: [completed]
 
 permissions:
-  contents: read
-  packages: read
+  contents: write
+  actions: read
+  pull-requests: read
 
 jobs:
-  verify:
-    if: github.head_ref != 'doc'
+  resolve-branch:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'pull_request' }}
+    runs-on: ubuntu-26.04
+    outputs:
+      target_branch: ${{ steps.resolve.outputs.target_branch }}
+    steps:
+      - id: resolve
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          target_branch=$(gh api \
+            "/repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/pulls" \
+            -H "Accept: application/vnd.github+json" \
+            --jq '.[0].base.ref // empty')
+
+          if [[ -z "$target_branch" ]]; then
+            echo "::error::Could not resolve the pull request base branch for workflow run $WORKFLOW_RUN_ID and commit $HEAD_SHA"
+            exit 1
+          fi
+
+          echo "target_branch=$target_branch" >> "$GITHUB_OUTPUT"
+
+  check-version:
+    needs: resolve-branch
+    if: >-
+      ${{
+        needs.resolve-branch.result == 'success' &&
+        (
+          needs.resolve-branch.outputs.target_branch == 'main' ||
+          startsWith(needs.resolve-branch.outputs.target_branch, 'dev/')
+        )
+      }}
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ steps.check.outputs.version }}
+      target_branch: ${{ steps.check.outputs.target_branch }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - id: check
-        run: |
-          local_v=$(jq -r .version package.json)
-          remote_v=$(git ls-remote --tags --refs origin 'v*' \
-            | sed 's|.*refs/tags/v||' | sort -V | tail -n1)
-          echo "local=$local_v remote=${remote_v:-none}"
-
-          if [ -n "$remote_v" ]; then
-            if [ "$local_v" = "$remote_v" ]; then
-              echo "::error::Version $local_v is already released"; exit 1
-            fi
-            highest=$(printf '%s\n%s\n' "$remote_v" "$local_v" | sort -V | tail -n1)
-            if [ "$highest" != "$local_v" ]; then
-              echo "::error::Local $local_v is lower than remote $remote_v"; exit 1
-            fi
-          fi
-
-          echo "version=$local_v" >> "$GITHUB_OUTPUT"
-
-  android:
-    needs: verify
-    runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: ./scripts/build-android.sh
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: android
-          path: build/android/ns-player.apk
-          if-no-files-found: error
-
-  web:
-    needs: verify
-    runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: ./scripts/build-web.sh
-      - name: zip
-        run: cd build/web && zip -r ../web.zip .
-      - uses: actions/upload-artifact@v4
-        with:
-          name: web-dir
-          path: build/web
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: web-zip
-          path: build/web.zip
-          if-no-files-found: error
-
-  linux:
-    needs: [verify, web]
-    runs-on: ubuntu-26.04
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-go@v7
-        with:
-          go-version-file: server/go.mod
-          cache-dependency-path: server/go.sum
-      - uses: actions/download-artifact@v4
-        with:
-          name: web-dir
-          path: build/web
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: ./scripts/build-linux.sh
-      - uses: actions/upload-artifact@v4
-        with:
-          name: linux
-          path: build/linux/NS-Player.AppImage
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: server
-          path: build/server/app-linux-amd64
-          if-no-files-found: error
+          TARGET_BRANCH: ${{ needs.resolve-branch.outputs.target_branch }}
+        run: |
+          version=$(scripts/ci-version-check.sh "$TARGET_BRANCH")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "target_branch=$TARGET_BRANCH" >> "$GITHUB_OUTPUT"
 
   release:
-    needs: [verify, android, web, linux]
+    needs: check-version
     runs-on: ubuntu-26.04
-    permissions:
-      contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           pattern: "{android,web-zip,linux,server}"
           path: artifacts
           merge-multiple: true
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
       - uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ needs.verify.outputs.version }}
-          target_commitish: ${{ github.sha }}
-          name: v${{ needs.verify.outputs.version }}
+          tag_name: v${{ needs.check-version.outputs.version }}
+          target_commitish: ${{ github.event.workflow_run.head_sha }}
+          name: v${{ needs.check-version.outputs.version }}
+          prerelease: ${{ needs.check-version.outputs.target_branch != 'main' }}
           generate_release_notes: true
           fail_on_unmatched_files: true
           files: artifacts/*

@@ -1,0 +1,127 @@
+name: Build
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "dev/**"
+    types:
+      - closed
+
+jobs:
+  check-docs:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-26.04
+    outputs:
+      docs_only: ${{ steps.docs.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - id: docs
+        name: Check documentation-only changes
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          docs_only=$(bash scripts/ci-docs-check.sh "$BASE_SHA" "$MERGE_SHA" "$HEAD_REF")
+          echo "docs_only=$docs_only" >> "$GITHUB_OUTPUT"
+
+  verify-version:
+    needs: check-docs
+    if: github.head_ref != 'docs' && needs.check-docs.outputs.docs_only == 'false'
+    runs-on: ubuntu-26.04
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - id: check
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          version=$(scripts/ci-version-check.sh "$BASE_REF")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  android-build:
+    needs: verify-version
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: ./scripts/build-android.sh
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android
+          path: build/android/ns-player.apk
+          if-no-files-found: error
+
+  web-build:
+    needs: verify-version
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: ./scripts/build-web.sh
+      - name: zip
+        run: cd build/web && zip -r ../web.zip .
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-dir
+          path: build/web
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: web-zip
+          path: build/web.zip
+          if-no-files-found: error
+
+  linux-build:
+    needs: [verify-version, web-build]
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - uses: actions/download-artifact@v7
+        with:
+          name: web-dir
+          path: build/web
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: ./scripts/build-linux.sh
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linux
+          path: build/linux/NS-Player.AppImage
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: server
+          path: build/server/app-linux-amd64
+          if-no-files-found: error
