@@ -46,7 +46,7 @@ const Sync = ({
       )) as Timestamp;
 
       if (timestamp) {
-        resetTimestamp(timestamp);
+        resetTimestamp(timestamp, true);
       }
     } catch (error) {
       console.error(error, (error as Error).cause);
