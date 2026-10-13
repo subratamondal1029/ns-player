@@ -2,14 +2,14 @@
 
 set -euo pipefail
 
-if [[ $# -ne 3 ]]; then
-    echo "Usage: $0 <base-sha> <merge-sha> <head-ref>" >&2
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+    echo "Usage: $0 <base-sha> [merge-sha] [head-ref]" >&2
     exit 1
 fi
 
 BASE_SHA="$1"
-MERGE_SHA="$2"
-HEAD_REF="$3"
+MERGE_SHA="${2:-HEAD}"
+HEAD_REF="${3:-}"
 
 # Ensure base and merge commits are available locally
 if ! git cat-file -e "$BASE_SHA^{commit}" 2>/dev/null; then
