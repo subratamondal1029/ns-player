@@ -68,7 +68,7 @@ Official pre-built binaries are available on the [Releases](https://github.com/s
 ## Roadmap
 
 - [x] Subtitle support (Single-track English `.en.srt`)
-- [ ] Improved double-tap skip functionality
+- [x] Improved double-tap skip functionality
 - [ ] Pan-gesture volume controls
 - [ ] Automatic local network device discovery and seamless background sync
 
