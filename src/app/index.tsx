@@ -27,7 +27,7 @@ import { decodePlaylistName } from "@/utils/playlistName";
 import { sortVideos } from "@/utils/sortVideos";
 import { router } from "expo-router";
 import { Play } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function App() {
   const [lastSessionLoadConfirm, setLastSessionLoadConfirm] =
@@ -113,26 +113,43 @@ export default function App() {
     }
   };
 
-  const openPlayer = async (index: number) => {
-    try {
-      if (!dir) return;
+  const openPlayer = useCallback(
+    async (index: number) => {
+      try {
+        if (!dir) return;
 
-      if (index === -1) index = 0;
-      const video = videos[index];
-      if (!video) return;
+        if (index === -1) index = 0;
+        const video = videos[index];
+        if (!video) return;
 
-      // Open the video player
-      playNow(index);
-      router.push("/player");
-    } catch (error) {
-      alert((error as Error).message || "Failed to open video player");
+        // Open the video player
+        playNow(index);
+        router.push("/player");
+      } catch (error) {
+        alert((error as Error).message || "Failed to open video player");
+      }
+    },
+    [dir, playNow, router, videos],
+  );
+
+  useEffect(() => {
+    const continueKeyPressListener = (e: KeyboardEvent) => {
+      if (e.key === "k") {
+        e.preventDefault();
+        openPlayer(lastPlayedVideoIdx);
+      }
+    };
+
+    if (Platform.OS === "web") {
+      window.addEventListener("keypress", continueKeyPressListener);
     }
-  };
 
-  const startOver = () => {
-    resetTimestamp(null);
-    openPlayer(0);
-  };
+    return () => {
+      if (Platform.OS === "web") {
+        window.removeEventListener("keypress", continueKeyPressListener);
+      }
+    };
+  }, [lastPlayedVideoIdx, openPlayer]);
 
   useEffect(() => {
     const checkExistsAndShowConfirm = async () => {
