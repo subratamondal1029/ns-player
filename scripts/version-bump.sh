@@ -4,15 +4,16 @@ set -euo pipefail
 
 usage() {
     cat <<EOF
-Usage: $0 {patch|minor|major|pre} [-b]
+Usage: $0 {patch|minor|major|pre|promote} [-b]
 
 Bump the version in package.json, package-lock.json, and app.json.
 
 Commands:
-  patch              Increment the patch version (or promote beta to release)
+  patch              Increment the patch version
   minor              Increment the minor version
   major              Increment the major version
-  pre                Increment the existing beta number
+  pre                Increment the existing beta number (keeps versionCode)
+  promote            Promote the current beta to stable (keeps versionCode)
 
 Options:
   -b                 Add beta.1 to a patch, minor, or major bump
@@ -22,6 +23,7 @@ Examples:
   $0 patch
   $0 minor -b
   $0 pre
+  $0 promote
 EOF
 }
 
@@ -49,7 +51,7 @@ if [[ $# -gt 0 ]]; then
 fi
 
 case "$BUMP_TYPE" in
-    patch|minor|major|pre)
+    patch|minor|major|pre|promote)
         ;;
     *)
         echo "Error: invalid bump type '$BUMP_TYPE'"
@@ -111,36 +113,48 @@ if [[ "$BUMP_TYPE" == "pre" ]]; then
     fi
     BETA_VERSION=$((BETA_VERSION + 1))
     NEXT_VERSION="$MAJOR.$MINOR.$PATCH-beta.$BETA_VERSION"
+    NEXT_VERSION_CODE="$CURRENT_VERSION_CODE"
+elif [[ "$BUMP_TYPE" == "promote" ]]; then
+    if [[ "$IS_CURRENT_BETA" != true ]]; then
+        echo "Error: promote requires an existing beta version: $CURRENT_VERSION"
+        exit 1
+    fi
+    if [[ "$BETA" == true ]]; then
+        echo "Error: promote command does not support -b"
+        exit 1
+    fi
+    NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
+    NEXT_VERSION_CODE="$CURRENT_VERSION_CODE"
 else
     # Handle patch, minor, major
-    if [[ "$IS_CURRENT_BETA" == true && "$BETA" == false && "$BUMP_TYPE" == "patch" ]]; then
-        # Promote beta to release version (e.g. 1.0.0-beta.1 -> 1.0.0)
-        NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
-    else
-        case "$BUMP_TYPE" in
-            patch)
-                PATCH=$((PATCH + 1))
-                ;;
-            minor)
-                MINOR=$((MINOR + 1))
-                PATCH=0
-                ;;
-            major)
-                MAJOR=$((MAJOR + 1))
-                MINOR=0
-                PATCH=0
-                ;;
-        esac
-
-        if [[ "$BETA" == true ]]; then
-            NEXT_VERSION="$MAJOR.$MINOR.$PATCH-beta.1"
-        else
-            NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
-        fi
+    if [[ "$IS_CURRENT_BETA" == true && "$BETA" == false ]]; then
+        echo "Error: current version is a beta ($CURRENT_VERSION). Use 'promote' to release to stable, or use '-b' to start a new beta."
+        exit 1
     fi
-fi
 
-NEXT_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
+    case "$BUMP_TYPE" in
+        patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+        major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+    esac
+
+    if [[ "$BETA" == true ]]; then
+        NEXT_VERSION="$MAJOR.$MINOR.$PATCH-beta.1"
+    else
+        NEXT_VERSION="$MAJOR.$MINOR.$PATCH"
+    fi
+
+    NEXT_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
+fi
 
 # Update package.json
 jq --arg version "$NEXT_VERSION" \
