@@ -385,6 +385,7 @@ export default function VideoPlayer({
                 subtitleToggle={toggleSubtitle}
                 updateTimestamp={seekTimestamp}
                 hideControls={() => handleControlToggle(false)}
+                closePlayer={onBack}
               />
 
               {/* main controls */}
