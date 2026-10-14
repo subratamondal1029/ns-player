@@ -24,4 +24,5 @@ export interface QuickControlProps {
   playPause: () => void;
   subtitleToggle: () => void;
   hideControls: () => void;
+  closePlayer: () => void;
 }
