@@ -82,6 +82,10 @@ func CompareTimestamp(existing, newTimestamp *Timestamp) (*Timestamp, bool, erro
 		return nil, false, fmt.Errorf("Both existing and new timestamp must be provided")
 	}
 
+	if existing.Playlist == "" {
+		return newTimestamp, true, nil
+	}
+
 	// updatedAt is a millisecond coordinate of a date
 	if existing.UpdatedAt >= newTimestamp.UpdatedAt {
 		return existing, false, nil

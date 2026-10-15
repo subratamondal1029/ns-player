@@ -34,8 +34,8 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Printf("ERROR :: SyncTimestamp :: %v", err)
 		pkgs.SendResponse(w, pkgs.ApiResponse{
-			Status:  http.StatusInternalServerError,
-			Message: "failed to decode timestamp",
+			Status:  http.StatusBadRequest,
+			Message: "failed to decode timestamp, Invalid JSON",
 		}, err)
 		return
 	}
@@ -57,7 +57,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existing.Playlist != timestamp.Playlist {
+	if existing.Playlist != "" && existing.Playlist != timestamp.Playlist {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Playlist does not match for synchronization",
