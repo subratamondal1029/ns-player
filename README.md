@@ -18,11 +18,11 @@ NS Player is an offline-first, cross-platform local video player designed for se
 
 ## Local Synchronization
 
-Synchronization works completely offline over your local Wi-Fi / LAN network:
+Synchronization works completely offline over your local Wi-Fi / LAN network using automatic last-write-wins resolution:
 
 1. **Linux**: Generate a QR code in the app by clicking the Sync button.
 2. **Android**: Open the built-in scanner and scan the Linux screen's QR code.
-3. **Data Exchange**: Send progress from mobile to desktop or receive latest timestamps from the desktop server.
+3. **Automatic Sync**: The server compares `updatedAt` timestamps between Android and Linux. The latest progress automatically becomes the source of truth and updates both devices with a single confirmation (no manual send/receive direction needed).
 
 ---
 
