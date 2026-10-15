@@ -89,6 +89,7 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
         index: 0,
         timestamp: 0.0,
       },
+      updatedAt: 0
     });
   } catch (error) {
     console.error("Timestamp state reset failed", error);

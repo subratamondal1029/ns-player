@@ -41,6 +41,7 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
           index: Math.max(0, index - 1),
           timestamp: 0,
         },
+        updatedAt: Date.now(),
       });
     } else {
       setTimestamp((prev) => {
@@ -72,7 +73,7 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (readyForStorage.current && timestamp) {
-      saveTimestampState(timestamp);
+      saveTimestampState({ ...timestamp, updatedAt: Date.now() });
     }
   }, [timestamp]);
 
