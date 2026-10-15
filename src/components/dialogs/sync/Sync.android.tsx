@@ -52,7 +52,7 @@ const Sync = ({
 
       if (timestamp) {
         resetTimestamp(timestamp);
-        saveTimestampState(timestamp);
+        await saveTimestampState(timestamp);
       }
     } catch (error) {
       console.error(error, (error as Error).cause);
