@@ -15,9 +15,10 @@ type position struct {
 }
 
 type Timestamp struct {
-	Playlist string   `json:"playlist" validate:"required,min=3"`
-	Previous position `json:"previous"`
-	Current  position `json:"current" validate:"required"`
+	Playlist  string   `json:"playlist" validate:"required,min=3"`
+	Previous  position `json:"previous"`
+	Current   position `json:"current" validate:"required"`
+	UpdatedAt int      `json:"updatedAt" validate:"gte=0"`
 }
 
 var defaultPosition = position{
@@ -26,8 +27,9 @@ var defaultPosition = position{
 }
 
 var defaultTimestamp = Timestamp{
-	Previous: defaultPosition,
-	Current:  defaultPosition,
+	Previous:  defaultPosition,
+	Current:   defaultPosition,
+	UpdatedAt: 0,
 }
 
 func DecodeTimestampJson(data io.ReadCloser) (*Timestamp, error) {
@@ -73,6 +75,23 @@ func GetTimestamp() (*Timestamp, error) {
 	}
 
 	return &timestamp, nil
+}
+
+func CompareTimestamp(existing, newTimestamp *Timestamp) (*Timestamp, bool, error) {
+	if existing == nil || newTimestamp == nil {
+		return nil, false, fmt.Errorf("Both existing and new timestamp must be provided")
+	}
+
+	if existing.Playlist == "" {
+		return newTimestamp, true, nil
+	}
+
+	// updatedAt is a millisecond coordinate of a date
+	if existing.UpdatedAt >= newTimestamp.UpdatedAt {
+		return existing, false, nil
+	}
+
+	return newTimestamp, true, nil
 }
 
 func ResetTimestamp(playlist string) error {

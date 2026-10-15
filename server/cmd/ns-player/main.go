@@ -19,7 +19,7 @@ func main() {
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
 	mux.HandleFunc("POST /api/timestamp/{playlist}/reset", handler.ResetTimestamp)
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
-	mux.HandleFunc("/api/sync", handler.SyncTimestamp) // GET & PUT
+	mux.HandleFunc("POST /api/sync", handler.SyncTimestamp)
 
 	// SSE
 	mux.HandleFunc("GET /api/sync/sse", handler.SyncSSE)

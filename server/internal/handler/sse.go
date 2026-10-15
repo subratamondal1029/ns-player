@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// TODO: make it for multiple devices
 var SSEChan = make(chan bool, 1) // okay for single use not for multiple users
 
 func SyncSSE(w http.ResponseWriter, r *http.Request) {
