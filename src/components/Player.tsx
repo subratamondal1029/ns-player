@@ -15,7 +15,7 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -89,14 +89,6 @@ export default function VideoPlayer({
     }, duration);
   };
 
-  useEventListener(player, "playToEnd", () => {
-    if (hasNext) {
-      next();
-    } else {
-      onBack();
-    }
-  });
-
   const handleControlToggle = (show: boolean) => {
     if (controlsVisibleTimeout.current !== null) {
       clearTimeout(controlsVisibleTimeout.current);
@@ -128,6 +120,21 @@ export default function VideoPlayer({
       <Play color="#fff" size={40} />
     );
     triggerFeedback(feedBackCom);
+  };
+
+  const changeVideo = (nextVideo: boolean = true) => {
+    if (!hasNext || !readyVideo) return;
+    setReadyVideo(false);
+    let Icon: React.ReactNode;
+    if (nextVideo) {
+      Icon = <SkipForward color="#fff" size={40} />;
+      next();
+    } else {
+      Icon = <SkipBack color="#fff" size={40} />;
+      prev();
+    }
+
+    triggerFeedback(Icon);
   };
 
   const toggleSubtitle = () => {
@@ -228,6 +235,14 @@ export default function VideoPlayer({
     updateTimestampStates(targetTimestamp);
     seeking.current = false;
   };
+
+  useEventListener(player, "playToEnd", () => {
+    if (hasNext) {
+      changeVideo(true);
+    } else {
+      onBack();
+    }
+  });
 
   // initial video load
   useEffect(() => {
@@ -364,12 +379,13 @@ export default function VideoPlayer({
 
               {/* quick controls */}
               <QuickControl
-                onNext={next}
-                onPrev={prev}
+                onNext={changeVideo.bind(null, true)}
+                onPrev={changeVideo.bind(null, false)}
                 playPause={playPause}
                 subtitleToggle={toggleSubtitle}
                 updateTimestamp={seekTimestamp}
                 hideControls={() => handleControlToggle(false)}
+                closePlayer={onBack}
               />
 
               {/* main controls */}
@@ -424,7 +440,7 @@ export default function VideoPlayer({
                     <Pressable
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                       disabled={!hasPrev}
-                      onPress={prev}
+                      onPress={changeVideo.bind(null, false)}
                     >
                       <Text>
                         <SkipBack
@@ -437,7 +453,7 @@ export default function VideoPlayer({
                     <Pressable
                       className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                       disabled={!hasNext}
-                      onPress={next}
+                      onPress={changeVideo.bind(null, true)}
                     >
                       <Text>
                         <SkipForward

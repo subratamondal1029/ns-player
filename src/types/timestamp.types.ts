@@ -7,4 +7,5 @@ export type Timestamp = {
   playlist: string;
   previous: position;
   current: position;
+  updatedAt: number;
 };

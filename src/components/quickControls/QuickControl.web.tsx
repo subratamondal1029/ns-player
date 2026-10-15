@@ -8,6 +8,7 @@ const QuickControl = ({
   playPause,
   subtitleToggle,
   updateTimestamp,
+  closePlayer,
 }: QuickControlProps) => {
   const controlsRef = useRef<Record<string, () => void>>({
     k: playPause,
@@ -18,6 +19,7 @@ const QuickControl = ({
     ArrowLeft: () => updateTimestamp(10, false),
     ArrowRight: () => updateTimestamp(10, true),
     Home: () => updateTimestamp(0),
+    Escape: closePlayer,
   });
 
   useEffect(() => {

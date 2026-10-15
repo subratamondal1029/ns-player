@@ -29,99 +29,75 @@ func GenerateSyncQr(w http.ResponseWriter, r *http.Request) {
 }
 
 func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		// Reading timestamp for Receive request
-		query := r.URL.Query()
-		playlist := query.Get("playlist")
+	timestamp, err := service.DecodeTimestampJson(r.Body)
 
-		if playlist == "" {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusBadRequest,
-				Message: "Playlist parameter is required",
-			}, nil)
-			return
-		}
-
-		timestamp, err := service.GetTimestamp()
-		if err != nil {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusInternalServerError,
-				Message: "failed to get existing timestamp",
-			}, err)
-			return
-		}
-
-		if timestamp.Playlist != playlist {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusUnprocessableEntity,
-				Message: "Playlist does not match for synchronization",
-			}, nil)
-			return
-		}
-
+	if err != nil {
+		fmt.Printf("ERROR :: SyncTimestamp :: %v", err)
 		pkgs.SendResponse(w, pkgs.ApiResponse{
-			Status:  http.StatusOK,
-			Message: "Timestamp retrieved",
-			Data:    timestamp,
-		}, nil)
-
-		SSEChan <- false
-	case http.MethodPut:
-		// Saving timestamp for Send request
-		timestamp, err := service.DecodeTimestampJson(r.Body)
-
-		if err != nil {
-			fmt.Printf("ERROR :: SyncTimestamp :: %v", err)
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusInternalServerError,
-				Message: "failed to decode timestamp",
-			}, err)
-			return
-		}
-
-		if err := validator.ValidateTimestamp(timestamp); err != nil {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusBadRequest,
-				Message: err.Error(),
-			}, err)
-			return
-		}
-
-		existing, err := service.GetTimestamp()
-		if err != nil {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusInternalServerError,
-				Message: "failed to get existing timestamp",
-			}, err)
-			return
-		}
-
-		if existing.Playlist != timestamp.Playlist {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusUnprocessableEntity,
-				Message: "Playlist does not match for synchronization",
-			}, nil)
-			return
-		}
-
-		err = service.SaveTimestamp(timestamp)
-		if err != nil {
-			pkgs.SendResponse(w, pkgs.ApiResponse{
-				Status:  http.StatusInternalServerError,
-				Message: "failed to sync timestamp",
-			}, err)
-			return
-		}
-
-		pkgs.SendResponse(w, pkgs.ApiResponse{
-			Status:  http.StatusOK,
-			Message: "timestamp saved successfully",
-			Data:    *timestamp,
-		}, nil)
-
-		SSEChan <- true
-	default:
-		http.Error(w, "Invalid Request", http.StatusMethodNotAllowed)
+			Status:  http.StatusBadRequest,
+			Message: "failed to decode timestamp, Invalid JSON",
+		}, err)
+		return
 	}
+
+	if err := validator.ValidateTimestamp(timestamp); err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusBadRequest,
+			Message: err.Error(),
+		}, err)
+		return
+	}
+
+	existing, err := service.GetTimestamp()
+	if err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to get existing timestamp",
+		}, err)
+		return
+	}
+
+	if existing.Playlist != "" && existing.Playlist != timestamp.Playlist {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusUnprocessableEntity,
+			Message: "Playlist does not match for synchronization",
+		}, nil)
+		return
+	}
+
+	updatedTimestamp, isUpdated, err := service.CompareTimestamp(existing, timestamp)
+
+	if err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to compare timestamps",
+		}, err)
+		return
+	}
+
+	if !isUpdated {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusOK,
+			Message: "update timestamp in client",
+			Data:    updatedTimestamp,
+		}, nil)
+		SSEChan <- false
+		return
+	}
+
+	err = service.SaveTimestamp(updatedTimestamp)
+	if err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to sync timestamp",
+		}, err)
+		return
+	}
+
+	pkgs.SendResponse(w, pkgs.ApiResponse{
+		Status:  http.StatusNotModified,
+		Message: "timestamp saved successfully",
+	}, nil)
+
+	SSEChan <- true
 }
