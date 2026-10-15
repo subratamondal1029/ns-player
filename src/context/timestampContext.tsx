@@ -50,12 +50,14 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
         if (prev.current.index === index) {
           return {
             ...prev,
+            updatedAt: Date.now(),
             current: { ...prev.current, timestamp: tsp },
           };
         }
 
         return {
           ...prev,
+          updatedAt: Date.now(),
           previous: prev.current,
           current: { index, timestamp: tsp },
         };
@@ -63,17 +65,14 @@ const TimestampProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const resetTimestamp = (
-    timestamp: Timestamp | null,
-    saveNow: boolean = false,
-  ) => {
-    readyForStorage.current = saveNow;
+  const resetTimestamp = (timestamp: Timestamp | null) => {
+    readyForStorage.current = false;
     setTimestamp(timestamp);
   };
 
   useEffect(() => {
     if (readyForStorage.current && timestamp) {
-      saveTimestampState({ ...timestamp, updatedAt: Date.now() });
+      saveTimestampState(timestamp);
     }
   }, [timestamp]);
 

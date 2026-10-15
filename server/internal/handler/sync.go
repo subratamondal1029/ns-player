@@ -77,8 +77,9 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 
 	if !isUpdated {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
-			Status:  http.StatusNotModified,
-			Message: "No update needed",
+			Status:  http.StatusOK,
+			Message: "update timestamp in client",
+			Data:    updatedTimestamp,
 		}, nil)
 		SSEChan <- false
 		return
@@ -94,9 +95,8 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pkgs.SendResponse(w, pkgs.ApiResponse{
-		Status:  http.StatusOK,
+		Status:  http.StatusNotModified,
 		Message: "timestamp saved successfully",
-		Data:    *timestamp,
 	}, nil)
 
 	SSEChan <- true

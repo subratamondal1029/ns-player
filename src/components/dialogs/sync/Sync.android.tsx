@@ -1,4 +1,5 @@
 import { useTimestamp } from "@/context/timestampContext";
+import { saveTimestampState } from "@/services/storage/storage";
 import { syncTimestamp } from "@/services/sync/sync";
 import { Timestamp } from "@/types/timestamp.types";
 import {
@@ -6,9 +7,14 @@ import {
   useCameraPermissions,
   type BarcodeScanningResult,
 } from "expo-camera";
-import { Loader2 } from "lucide-react-native";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 
 const Sync = ({
   visible,
@@ -32,7 +38,7 @@ const Sync = ({
     setVisible(false);
   };
 
-  const synchronize = async (isSending: boolean) => {
+  const synchronize = useCallback(async () => {
     try {
       setLoading(true);
       if (!rawTimestamp) {
@@ -40,13 +46,13 @@ const Sync = ({
       }
 
       const timestamp = (await syncTimestamp(
-        isSending,
         rawTimestamp,
         url,
-      )) as Timestamp;
+      )) as Timestamp | null;
 
       if (timestamp) {
-        resetTimestamp(timestamp, true);
+        resetTimestamp(timestamp);
+        saveTimestampState(timestamp);
       }
     } catch (error) {
       console.error(error, (error as Error).cause);
@@ -55,7 +61,7 @@ const Sync = ({
       onClose();
       setLoading(false);
     }
-  };
+  }, [url, rawTimestamp, resetTimestamp]);
 
   const handleScan = ({ data }: BarcodeScanningResult) => {
     setUrl(data);
@@ -82,10 +88,10 @@ const Sync = ({
         <View className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
           {loading ? (
             <View className="h-36 flex-1 justify-center items-center">
-              <Loader2
+              <ActivityIndicator
                 color="#fff"
-                size={28}
-                className="animate-spin mx-auto"
+                size="large"
+                className="mx-auto"
               />
             </View>
           ) : url && scanned && !loading ? (
@@ -96,19 +102,11 @@ const Sync = ({
               </Text>
               <View className="flex-row justify-center items-center gap-3">
                 <Pressable
-                  onPress={() => synchronize(false)}
+                  onPress={synchronize}
                   className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
                 >
                   <Text className="text-sm font-semibold text-white text-center">
-                    Receive
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={() => synchronize(true)}
-                  className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
-                >
-                  <Text className="text-sm font-semibold text-white text-center">
-                    Send
+                    Confirm
                   </Text>
                 </Pressable>
               </View>
