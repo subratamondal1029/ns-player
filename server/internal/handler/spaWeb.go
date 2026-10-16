@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/mileusna/useragent"
 	"github.com/subratamondal1029/ns-player/internal/embed"
 )
 
@@ -18,6 +19,15 @@ func WebHandler() http.Handler {
 	fileServer := http.FileServer(http.FS(staticFs))
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userAgent := useragent.Parse(r.UserAgent())
+
+		browser := strings.ToLower(strings.ReplaceAll(userAgent.Name, " ", "-"))
+
+		if !userAgent.Desktop || browser != "chrome" {
+			http.Error(w, "Unsupported client", http.StatusNotAcceptable)
+			return
+		}
+
 		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
