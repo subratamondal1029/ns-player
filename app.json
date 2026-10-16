@@ -8,11 +8,11 @@
     "scheme": "nsplayer",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/linux/icon.png",
+      "image": "./assets/splash/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a",
       "dark": {
-        "image": "./assets/linux/icon.png",
+        "image": "./assets/splash/icon.png",
         "backgroundColor": "#0a0a0a"
       }
     },
@@ -51,11 +51,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0a0a0a",
-          "image": "./assets/linux/icon.png",
+          "image": "./assets/splash/icon.png",
           "imageWidth": 150,
           "dark": {
             "backgroundColor": "#0a0a0a",
-            "image": "./assets/linux/icon.png"
+            "image": "./assets/splash/icon.png"
           }
         }
       ],
