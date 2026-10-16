@@ -8,11 +8,11 @@
     "scheme": "nsplayer",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/ios/AppIcon~ios-marketing.png",
+      "image": "./assets/linux/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a",
       "dark": {
-        "image": "./assets/ios/AppIcon~ios-marketing.png",
+        "image": "./assets/linux/icon.png",
         "backgroundColor": "#0a0a0a"
       }
     },
@@ -51,11 +51,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0a0a0a",
-          "image": "./assets/ios/AppIcon~ios-marketing.png",
-          "imageWidth": 76,
+          "image": "./assets/linux/icon.png",
+          "imageWidth": 150,
           "dark": {
             "backgroundColor": "#0a0a0a",
-            "image": "./assets/ios/AppIcon~ios-marketing.png"
+            "image": "./assets/linux/icon.png"
           }
         }
       ],
