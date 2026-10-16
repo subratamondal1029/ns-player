@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "ns-player",
+    "name": "NS Player",
     "slug": "ns-player",
-    "version": "2.0.0-beta.3",
+    "version": "2.0.0-beta.4",
     "orientation": "portrait",
     "icon": "./assets/ios/AppIcon~ios-marketing.png",
     "scheme": "nsplayer",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/ios/AppIcon~ios-marketing.png",
+      "image": "./assets/splash/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#0a0a0a",
       "dark": {
-        "image": "./assets/ios/AppIcon~ios-marketing.png",
+        "image": "./assets/splash/icon.png",
         "backgroundColor": "#0a0a0a"
       }
     },
@@ -51,11 +51,11 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#0a0a0a",
-          "image": "./assets/ios/AppIcon~ios-marketing.png",
-          "imageWidth": 76,
+          "image": "./assets/splash/icon.png",
+          "imageWidth": 150,
           "dark": {
             "backgroundColor": "#0a0a0a",
-            "image": "./assets/ios/AppIcon~ios-marketing.png"
+            "image": "./assets/splash/icon.png"
           }
         }
       ],
