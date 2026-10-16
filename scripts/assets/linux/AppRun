@@ -21,7 +21,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Wait until server is ready
-until curl -fsS "$URL" >/dev/null 2>&1; do
+until curl -fsS "${URL}/api/health" >/dev/null 2>&1; do
     if ! kill -0 "$SERVER_PID" 2>/dev/null; then
         echo "NS Player server failed to start."
         exit 1
