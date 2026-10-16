@@ -232,8 +232,10 @@ export default function VideoPlayer({
     if (!readyVideo) return;
     const targetTimestamp = (value / 100) * player.duration;
     player.currentTime = targetTimestamp;
-    updateTimestampStates(targetTimestamp);
     seeking.current = false;
+    accumulatedTimestamp.current = targetTimestamp;
+    seekBaseTimestamp.current = targetTimestamp;
+    updateTimestampStates(targetTimestamp);
   };
 
   useEventListener(player, "playToEnd", () => {
