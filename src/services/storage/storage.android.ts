@@ -52,6 +52,7 @@ const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
     throw new Error("Timestamp state save failed", { cause: error });
   }
 };
+
 const loadTimestampState = async (
   playlist: string,
 ): Promise<Timestamp | null> => {
@@ -89,6 +90,7 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
         index: 0,
         timestamp: 0.0,
       },
+      updatedAt: 0,
     });
   } catch (error) {
     console.error("Timestamp state reset failed", error);
