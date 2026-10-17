@@ -74,3 +74,5 @@ Official pre-built binaries are available on the [Releases](https://github.com/s
 
 > [!NOTE]
 > This application was designed around a personal workflow and specific requirements. If you have different preferences or feature needs, feel free to fork the repository and tailor it to your use case.
+
+test protection rules
