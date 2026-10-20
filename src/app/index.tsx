@@ -51,7 +51,6 @@ export default function App() {
 
   const loadVideos = async (dir: Dir, playlist: string) => {
     try {
-      setLoading(true);
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
     } catch (error) {
@@ -61,8 +60,6 @@ export default function App() {
         text1: "Error",
         text2: (error as Error).message || "Failed to get videos",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -84,6 +81,7 @@ export default function App() {
 
   const loadExistingDir = async () => {
     try {
+      setLoading(true);
       const dirData = await loadDir();
       if (!dirData) return;
 
@@ -95,11 +93,14 @@ export default function App() {
         text1: "Error",
         text2: (error as Error).message || "Failed to load existing directory",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
+      setLoading(true);
       await saveDir(dir, playlist);
       await resetTimestampState(playlist);
       saveLocalState(dir, playlist);
@@ -110,6 +111,8 @@ export default function App() {
         text1: "Error",
         text2: (error as Error).message || "Failed to upload videos",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
