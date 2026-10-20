@@ -149,6 +149,7 @@ export default function VideoPlayer({
     if (nextSubtitleEnabled) {
       triggerFeedback(<Captions color="#fff" fill="transparent" size={40} />);
     } else {
+      setSubtitle("")
       triggerFeedback(
         <CaptionsOff color="#fff" fill="transparent" size={40} />,
       );
