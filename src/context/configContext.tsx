@@ -17,8 +17,9 @@ const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
   const [config, setConfig] = useState<Config>(defaultConfig);
 
   const saveConfig = (key: keyof Config, value: Config[keyof Config]) => {
-    setConfig((prev) => ({ ...prev, [key]: value }));
-    storeConfig(config).catch(console.error);
+    const updated = { ...config, [key]: value };
+    setConfig(updated);
+    storeConfig(updated).catch(console.error);
   };
 
   useEffect(() => {

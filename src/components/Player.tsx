@@ -66,9 +66,7 @@ export default function VideoPlayer({
   const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
   const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
   const subtitleIntervalId = useRef<number | null>(null);
-  const subtitleEnabled = useRef<boolean>(
-    video.subtitle !== null || config.subtitle,
-  );
+  const subtitleEnabled = useRef<boolean>(config.subtitle);
   const feedbackTimeout = useRef<number | null>(null);
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
@@ -144,10 +142,11 @@ export default function VideoPlayer({
 
   const toggleSubtitle = () => {
     if (!video.subtitle) return;
-    subtitleEnabled.current = !subtitleEnabled.current;
-    saveConfig("subtitle", subtitleEnabled.current);
+    const nextSubtitleEnabled = !subtitleEnabled.current;
+    subtitleEnabled.current = nextSubtitleEnabled;
+    saveConfig("subtitle", nextSubtitleEnabled);
 
-    if (subtitleEnabled.current) {
+    if (nextSubtitleEnabled) {
       triggerFeedback(<Captions color="#fff" fill="transparent" size={40} />);
     } else {
       triggerFeedback(
