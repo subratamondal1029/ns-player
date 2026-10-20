@@ -1,3 +1,4 @@
+import { useConfig } from "@/context/configContext";
 import { VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
 import { findSubtitle } from "@/utils/subtitleParser";
@@ -44,6 +45,8 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const player = useVideoPlayer(video.uri);
 
+  const { config, saveConfig } = useConfig();
+
   const [showControls, setShowControls] = useState<boolean>(true);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
   const [subtitle, setSubtitle] = useState<string>("");
@@ -63,7 +66,9 @@ export default function VideoPlayer({
   const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
   const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
   const subtitleIntervalId = useRef<number | null>(null);
-  const subtitleEnabled = useRef<boolean>(video.subtitle !== null);
+  const subtitleEnabled = useRef<boolean>(
+    video.subtitle !== null || config.subtitle,
+  );
   const feedbackTimeout = useRef<number | null>(null);
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
@@ -140,6 +145,7 @@ export default function VideoPlayer({
   const toggleSubtitle = () => {
     if (!video.subtitle) return;
     subtitleEnabled.current = !subtitleEnabled.current;
+    saveConfig("subtitle", subtitleEnabled.current);
 
     if (subtitleEnabled.current) {
       triggerFeedback(<Captions color="#fff" fill="transparent" size={40} />);
