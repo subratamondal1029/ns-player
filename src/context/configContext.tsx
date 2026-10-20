@@ -1,6 +1,6 @@
 import { getConfig, saveConfig as storeConfig } from "@/services/config/config";
 import { Config } from "@/types/config.types";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const defaultConfig: Config = {
   subtitle: false,
@@ -15,9 +15,11 @@ const ConfigContext = createContext<TConfigContext | null>(null);
 
 const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
   const [config, setConfig] = useState<Config>(defaultConfig);
+  const configRef = useRef<Config>(defaultConfig);
 
   const saveConfig = (key: keyof Config, value: Config[keyof Config]) => {
-    const updated = { ...config, [key]: value };
+    const updated = { ...configRef.current, [key]: value };
+    configRef.current = updated;
     setConfig(updated);
     storeConfig(updated).catch(console.error);
   };
@@ -27,6 +29,7 @@ const ConfigProvider = ({ children }: { children: React.ReactNode }) => {
       .then((config) => {
         if (config) {
           setConfig(config);
+          configRef.current = config;
         }
       })
       .catch((error) => {
