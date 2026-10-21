@@ -24,6 +24,12 @@ cp assets/linux/icon.png build/linux/AppDir/ns-player.png
 cp scripts/assets/linux/ns-player.desktop build/linux/AppDir/ns-player.desktop
 cp scripts/assets/linux/AppRun build/linux/AppDir/AppRun
 
+# Replace the version in the desktop file
+PACKAGE_JSON="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/package.json"
+VERSION="$(jq -r '.version' "$PACKAGE_JSON")"
+
+sed -i "s/^X-AppImage-Version=.*/X-AppImage-Version=$VERSION/" build/linux/AppDir/ns-player.desktop
+
 echo "Compiling AppImage..."
 docker run --rm \
   -v "$PWD:/app" \
