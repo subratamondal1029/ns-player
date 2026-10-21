@@ -1,7 +1,7 @@
 {
   "name": "ns-player",
   "main": "expo-router/entry",
-  "version": "2.1.0-beta.1",
+  "version": "2.1.0-beta.2",
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/ui": "~57.0.19",
