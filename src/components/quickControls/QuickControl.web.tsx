@@ -9,6 +9,7 @@ const QuickControl = ({
   subtitleToggle,
   updateTimestamp,
   closePlayer,
+  toggleFullscreen,
 }: QuickControlProps) => {
   const controlsRef = useRef<Record<string, () => void>>({
     k: playPause,
@@ -16,6 +17,7 @@ const QuickControl = ({
     N: onNext,
     P: onPrev,
     c: subtitleToggle,
+    f: toggleFullscreen,
     ArrowLeft: () => updateTimestamp(10, false),
     ArrowRight: () => updateTimestamp(10, true),
     Home: () => updateTimestamp(0),

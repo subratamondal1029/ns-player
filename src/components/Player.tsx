@@ -422,6 +422,7 @@ export default function VideoPlayer({
                 updateTimestamp={seekTimestamp}
                 hideControls={() => handleControlToggle(false)}
                 closePlayer={onBack}
+                toggleFullscreen={toggleFullscreen}
               />
 
               {/* main controls */}
