@@ -11,6 +11,8 @@ import {
   ChevronLeft,
   ChevronsLeft,
   ChevronsRight,
+  Maximize,
+  Minimize,
   Pause,
   Play,
   SkipBack,
@@ -68,6 +70,7 @@ export default function VideoPlayer({
   const subtitleIntervalId = useRef<number | null>(null);
   const subtitleEnabled = useRef<boolean>(config.subtitle);
   const feedbackTimeout = useRef<number | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
     [timestamp, player.duration],
@@ -149,10 +152,21 @@ export default function VideoPlayer({
     if (nextSubtitleEnabled) {
       triggerFeedback(<Captions color="#fff" fill="transparent" size={40} />);
     } else {
-      setSubtitle("")
+      setSubtitle("");
       triggerFeedback(
         <CaptionsOff color="#fff" fill="transparent" size={40} />,
       );
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (Platform.OS !== "web") return;
+
+    // NOTE: this application only work on google-chrome so no need other browser support
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen();
     }
   };
 
@@ -251,6 +265,20 @@ export default function VideoPlayer({
       onBack();
     }
   });
+
+  // fullscreen tracker
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement !== null);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
 
   // initial video load
   useEffect(() => {
@@ -394,6 +422,7 @@ export default function VideoPlayer({
                 updateTimestamp={seekTimestamp}
                 hideControls={() => handleControlToggle(false)}
                 closePlayer={onBack}
+                toggleFullscreen={toggleFullscreen}
               />
 
               {/* main controls */}
@@ -489,6 +518,20 @@ export default function VideoPlayer({
                         )}
                       </Text>
                     </Pressable>
+                    {Platform.OS === "web" && (
+                      <Pressable
+                        onPress={toggleFullscreen}
+                        className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                      >
+                        <Text>
+                          {isFullscreen ? (
+                            <Minimize color="#fff" size={22} />
+                          ) : (
+                            <Maximize color="#fff" size={22} />
+                          )}
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
                 </View>
               </View>
