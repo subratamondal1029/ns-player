@@ -67,18 +67,19 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
             <TextInput
               value={playlist}
               onChangeText={setPlaylist}
-              placeholder="new-playlist"
+              placeholder="New Playlist"
               placeholderTextColor="#737373"
               autoCapitalize="none"
-              className="w-full bg-neutral-950/80 text-neutral-100 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm"
+              className="w-full bg-neutral-950/80 text-neutral-100 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
             />
           </View>
 
           {/* Pick Playlist Button */}
           <View className="gap-2 w-full">
             <Pressable
+              focusable={true}
               onPress={handlePickPlaylist}
-              className="w-full py-3 px-4 rounded-xl bg-neutral-800/80 border border-neutral-700/60 active:bg-neutral-700 flex-row items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl bg-neutral-800/80 border border-neutral-700/60 active:bg-neutral-700 flex-row items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-medium text-neutral-200">
                 Pick Playlist Folder
@@ -94,8 +95,9 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
           {/* Actions */}
           <View className="flex-row justify-end gap-3 pt-2">
             <Pressable
+              focusable={true}
               onPress={handleCancel}
-              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700"
+              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-medium text-neutral-300">
                 Cancel
@@ -103,8 +105,9 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
             </Pressable>
 
             <Pressable
+              focusable={true}
               onPress={handleConfirm}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-semibold text-white">Upload</Text>
             </Pressable>

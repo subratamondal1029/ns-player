@@ -12,4 +12,12 @@
     outline: none !important;
     box-shadow: none !important;
   }
+
+  /* Allow focus rings and outlines strictly inside dialogs */
+  [role="dialog"] *:focus-visible,
+  [aria-modal="true"] *:focus-visible,
+  .modal-dialog *:focus-visible {
+    outline: revert !important;
+    box-shadow: revert !important;
+  }
 }

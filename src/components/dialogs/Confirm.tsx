@@ -41,8 +41,9 @@ export default function ConfirmDialog({
 
           <View className="flex-row justify-end gap-3">
             <Pressable
+              focusable={true}
               onPress={handleCancel}
-              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700"
+              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-medium text-neutral-300">
                 Cancel
@@ -50,8 +51,9 @@ export default function ConfirmDialog({
             </Pressable>
 
             <Pressable
+              focusable={true}
               onPress={handleConfirm}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-semibold text-white">Confirm</Text>
             </Pressable>
