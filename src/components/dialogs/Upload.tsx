@@ -51,7 +51,12 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
   };
 
   return (
-    <Modal transparent visible={visible} animationType="fade">
+    <Modal
+      transparent
+      visible={visible}
+      onRequestClose={handleCancel}
+      animationType="fade"
+    >
       <View className="flex-1 justify-center items-center bg-black/70 p-4">
         <View className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl gap-5">
           <Text className="text-lg font-semibold text-neutral-100">
