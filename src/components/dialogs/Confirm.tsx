@@ -40,22 +40,23 @@ export default function ConfirmDialog({
           </Text>
 
           <View className="flex-row justify-end gap-3">
+            {/* reverse order for make Confirm button fucus first on mount without using JS */}
             <Pressable
               focusable={true}
-              onPress={handleCancel}
-              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+              onPress={handleConfirm}
+              className="order-2 px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
-              <Text className="text-sm font-medium text-neutral-300">
-                Cancel
-              </Text>
+              <Text className="text-sm font-semibold text-white">Confirm</Text>
             </Pressable>
 
             <Pressable
               focusable={true}
-              onPress={handleConfirm}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+              onPress={handleCancel}
+              className="order-1 px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
-              <Text className="text-sm font-semibold text-white">Confirm</Text>
+              <Text className="text-sm font-medium text-neutral-300">
+                Cancel
+              </Text>
             </Pressable>
           </View>
         </View>
