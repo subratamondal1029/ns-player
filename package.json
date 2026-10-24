@@ -52,6 +52,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "start:kitty": "bash ./scripts/start-dev.sh",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",
