@@ -1,7 +1,7 @@
 {
   "name": "ns-player",
   "main": "expo-router/entry",
-  "version": "2.1.0-beta.3",
+  "version": "2.1.0-beta.4",
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/ui": "~57.0.19",
@@ -52,6 +52,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "start:kitty": "bash ./scripts/start-dev.sh",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
     "ios": "expo start --ios",

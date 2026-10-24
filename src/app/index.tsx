@@ -208,15 +208,10 @@ export default function App() {
             <Text className="text-2xl sm:text-3xl font-bold text-neutral-100 text-center tracking-tight">
               {decodePlaylistName(playlist) || "NS Player"}
             </Text>
-            {dir?.name ? (
-              <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
-                {dir.name}
-              </Text>
-            ) : null}
           </View>
 
           {/* Action Buttons */}
-          <View className="flex-row gap-3 mb-4">
+          <View className="flex-row gap-3 mb-2">
             <Pressable
               onPress={() => setShowPicker(true)}
               className="flex-1 py-3.5 px-4 rounded-xl bg-blue-600 active:bg-blue-500 items-center justify-center shadow-sm"
@@ -236,6 +231,17 @@ export default function App() {
               </Text>
             </Pressable>
           </View>
+
+            {dir?.name ? (
+              <View className="flex flex-row justify-between items-center w-full mb-2">
+                <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
+                  {playlist}
+                </Text>
+                <Text className="text-sm text-neutral-400">
+                  {lastPlayedVideoIdx +1}/{videos.length}
+                </Text>
+              </View>
+            ) : null}
 
           {/* Main Content */}
           <View className="flex-1">
