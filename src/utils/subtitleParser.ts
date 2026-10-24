@@ -5,11 +5,21 @@ const srtParser = (srt: string): Dialogue[] => {
   return subs;
 };
 
-const findSubtitle = (subs: Dialogue[], currentTime: number) => {
-  const subtitle = subs.find(
-    (sub) => sub.startSeconds <= currentTime && currentTime < sub.endSeconds,
+const findSubtitle = (
+  subs: Dialogue[],
+  currentTime: number,
+  offSet = 0.2,
+): string => {
+  const subtitles = subs.filter(
+    (sub) =>
+      sub.startSeconds <= currentTime && currentTime < sub.endSeconds + offSet,
   );
-  return subtitle ? subtitle.lines.join("\n") : "";
+
+  if (subtitles.length === 0) {
+    return "";
+  }
+
+  return subtitles.map((sub) => sub.lines.join("\n")).join("\n");
 };
 
 export { findSubtitle, srtParser };
