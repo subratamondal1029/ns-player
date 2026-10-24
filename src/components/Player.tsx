@@ -173,7 +173,7 @@ export default function VideoPlayer({
   const updateSubtitle = (timestamp: number) => {
     if (!video.subtitle || !player.playing) return;
     if (subtitleEnabled.current) {
-      setSubtitle(findSubtitle(video.subtitle, timestamp + 0.3));
+      setSubtitle(findSubtitle(video.subtitle, timestamp, 0.2));
     } else {
       setSubtitle("");
     }
@@ -309,7 +309,7 @@ export default function VideoPlayer({
           if (!seeking.current) {
             updateSubtitle(player.currentTime);
           }
-        }, 500);
+        }, 600);
       }
     } else {
       if (timestampIntervalId.current !== null) {
