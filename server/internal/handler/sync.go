@@ -57,13 +57,16 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existing.Playlist != "" && existing.Playlist != timestamp.Playlist {
+	if existing.Playlist != "" && !pkgs.ComparePlaylistName(existing.Playlist, timestamp.Playlist) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Playlist does not match for synchronization",
 		}, nil)
 		return
 	}
+
+	// normalize playlist before comparison and persistence
+	timestamp.Playlist = pkgs.EncodePlaylistName(timestamp.Playlist)
 
 	updatedTimestamp, isUpdated, err := service.CompareTimestamp(existing, timestamp)
 

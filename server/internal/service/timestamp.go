@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/subratamondal1029/ns-player/config"
+	"github.com/subratamondal1029/ns-player/pkgs"
 )
 
 type position struct {
@@ -51,6 +52,9 @@ func DecodeTimestampJson(data io.ReadCloser) (*Timestamp, error) {
 
 func SaveTimestamp(timestamp *Timestamp) error {
 	conf := config.Get()
+
+	// Ensure playlist name is always stored encoded
+	timestamp.Playlist = pkgs.EncodePlaylistName(timestamp.Playlist)
 
 	data, err := json.Marshal(*timestamp)
 	if err != nil {
@@ -97,11 +101,11 @@ func CompareTimestamp(existing, newTimestamp *Timestamp) (*Timestamp, bool, erro
 func ResetTimestamp(playlist string) error {
 	existingPlaylist, err := GetTimestamp()
 
-	if err == nil && existingPlaylist != nil && existingPlaylist.Playlist == playlist {
+	if err == nil && existingPlaylist != nil && pkgs.ComparePlaylistName(existingPlaylist.Playlist, playlist) {
 		return nil // already existing playlist no need to overwrite
 	}
 
 	timestamp := defaultTimestamp
-	timestamp.Playlist = playlist
+	timestamp.Playlist = pkgs.EncodePlaylistName(playlist)
 	return SaveTimestamp(&timestamp)
 }
