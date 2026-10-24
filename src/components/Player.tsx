@@ -173,7 +173,7 @@ export default function VideoPlayer({
   const updateSubtitle = (timestamp: number) => {
     if (!video.subtitle || !player.playing) return;
     if (subtitleEnabled.current) {
-      setSubtitle(findSubtitle(video.subtitle, timestamp, 0.2));
+      setSubtitle(findSubtitle(video.subtitle, timestamp + 0.3, 0.2));
     } else {
       setSubtitle("");
     }
