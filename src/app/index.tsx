@@ -206,7 +206,9 @@ export default function App() {
           {/* Header */}
           <View className="mb-6 items-center">
             <Text className="text-2xl sm:text-3xl font-bold text-neutral-100 text-center tracking-tight">
-              {decodePlaylistName(playlist) || "NS Player"}
+              {dir?.name && playlist
+                ? decodePlaylistName(playlist)
+                : "NS Player"}
             </Text>
           </View>
 
@@ -232,16 +234,16 @@ export default function App() {
             </Pressable>
           </View>
 
-            {dir?.name ? (
-              <View className="flex flex-row justify-between items-center w-full mb-2">
-                <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
-                  {playlist}
-                </Text>
-                <Text className="text-sm text-neutral-400">
-                  {lastPlayedVideoIdx +1}/{videos.length}
-                </Text>
-              </View>
-            ) : null}
+          {dir?.name ? (
+            <View className="flex flex-row justify-between items-center w-full mb-2">
+              <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
+                {playlist}
+              </Text>
+              <Text className="text-sm text-neutral-400">
+                {lastPlayedVideoIdx + 1}/{videos.length}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Main Content */}
           <View className="flex-1">

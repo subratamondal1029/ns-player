@@ -1,6 +1,7 @@
 import { useTimestamp } from "@/context/timestampContext";
 import { pickDir } from "@/services/folderPicker/picker";
 import { Dir } from "@/types/video.type";
+import { encodePlaylistName } from "@/utils/playlistName";
 import { Check } from "lucide-react-native";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Modal, Pressable, Text, TextInput, View } from "react-native";
@@ -26,7 +27,7 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
 
   const handleConfirm = () => {
     if (playlist && dir) {
-      upload(dir, playlist);
+      upload(dir, encodePlaylistName(playlist));
 
       setPlaylist("");
       setDir(null);
@@ -43,7 +44,7 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
       const dir = await pickDir();
       setDir(dir);
       if (playlist === "") {
-        setPlaylist(dir.name);
+        setPlaylist(encodePlaylistName(dir.name));
       }
     } catch (error) {
       setError((error as Error).message || "Failed to pick playlist");
