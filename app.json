@@ -7,32 +7,14 @@
     "icon": "./assets/ios/AppIcon~ios-marketing.png",
     "scheme": "nsplayer",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "image": "./assets/splash/icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#0a0a0a",
-      "dark": {
-        "image": "./assets/splash/icon.png",
-        "backgroundColor": "#0a0a0a"
-      }
-    },
     "ios": {
       "icon": "./assets/ios/AppIcon~ios-marketing.png",
-      "userInterfaceStyle": "dark",
-      "splash": {
-        "backgroundColor": "#0a0a0a"
-      }
+      "userInterfaceStyle": "dark"
     },
     "android": {
       "package": "com.subratamondal.nsplayer",
       "versionCode": 10,
       "userInterfaceStyle": "dark",
-      "splash": {
-        "backgroundColor": "#0a0a0a",
-        "dark": {
-          "backgroundColor": "#0a0a0a"
-        }
-      },
       "adaptiveIcon": {
         "backgroundColor": "#0a0a0a",
         "foregroundImage": "./assets/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png",
@@ -53,9 +35,11 @@
           "backgroundColor": "#0a0a0a",
           "image": "./assets/splash/icon.png",
           "imageWidth": 150,
+          "resizeMode": "contain",
           "dark": {
             "backgroundColor": "#0a0a0a",
-            "image": "./assets/splash/icon.png"
+            "image": "./assets/splash/icon.png",
+            "resizeMode": "contain"
           }
         }
       ],
