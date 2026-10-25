@@ -34,6 +34,9 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// normalize playlist name before sending to channel
+	timestamp.Playlist = pkgs.EncodePlaylistName(timestamp.Playlist)
+
 	// send to writer worker
 	writerWorkerDataChan <- *timestamp
 
@@ -64,7 +67,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if timestamp.Playlist != playlist {
+	if !pkgs.ComparePlaylistName(timestamp.Playlist, playlist) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusNotFound,
 			Message: "Playlist does not exists",
@@ -82,7 +85,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 func ResetTimestamp(w http.ResponseWriter, r *http.Request) {
 	playlist := r.PathValue("playlist")
 
-	if err := service.ResetTimestamp(playlist); err != nil {
+	if err := service.ResetTimestamp(pkgs.EncodePlaylistName(playlist)); err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to reset timestamp",
