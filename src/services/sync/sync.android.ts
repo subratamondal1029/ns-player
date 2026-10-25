@@ -20,7 +20,9 @@ const syncTimestamp = async (
 
     return updatedTimestamp;
   } catch (error) {
-    throw new Error("Failed to sync timestamp", { cause: error });
+    throw new Error((error as Error).message || "Failed to sync timestamp", {
+      cause: error,
+    });
   }
 };
 
