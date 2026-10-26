@@ -29,6 +29,7 @@ import {
   View,
 } from "react-native";
 import Feedback from "./Feedback";
+import MediaNotification from "./notification/MediaNotification";
 import QuickControl from "./quickControls/QuickControl";
 
 const cleanUri = (uri: string) => {
@@ -38,6 +39,7 @@ const cleanUri = (uri: string) => {
 
 export default function VideoPlayer({
   video,
+  playlistName = "",
   hasNext,
   hasPrev,
   next,
@@ -548,6 +550,18 @@ export default function VideoPlayer({
         </View>
 
         <Feedback>{feedback}</Feedback>
+
+        <MediaNotification
+          videoTitle={video.title}
+          playlistName={playlistName}
+          isPlaying={isPlaying}
+          hasPrev={hasPrev}
+          hasNext={hasNext}
+          onPlay={() => player.play()}
+          onPause={() => player.pause()}
+          onNext={next}
+          onPrev={prev}
+        />
       </View>
     </Pressable>
   );
