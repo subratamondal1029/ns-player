@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/pkgs"
@@ -108,4 +109,120 @@ func ResetTimestamp(playlist string) error {
 	timestamp := defaultTimestamp
 	timestamp.Playlist = pkgs.EncodePlaylistName(playlist)
 	return SaveTimestamp(&timestamp)
+}
+
+func getBackupStore() (map[string]Timestamp, error) {
+	conf := config.Get()
+	data, err := os.ReadFile(conf.BackupPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return make(map[string]Timestamp), nil
+		}
+		return nil, err
+	}
+
+	var backups map[string]Timestamp
+	if err := json.Unmarshal(data, &backups); err != nil {
+		// If empty or invalid json, fallback gracefully
+		return make(map[string]Timestamp), nil
+	}
+	return backups, nil
+}
+
+func saveBackupStore(backups map[string]Timestamp) error {
+	conf := config.Get()
+	data, err := json.Marshal(backups)
+	if err != nil {
+		return err
+	}
+
+	dir := filepath.Dir(conf.BackupPath)
+	tmpFile, err := os.CreateTemp(dir, "timestamps_bak_*.tmp")
+	if err != nil {
+		return err
+	}
+	tmpName := tmpFile.Name()
+
+	if _, err := tmpFile.Write(data); err != nil {
+		tmpFile.Close()
+		_ = os.Remove(tmpName)
+		return err
+	}
+	if err := tmpFile.Close(); err != nil {
+		_ = os.Remove(tmpName)
+		return err
+	}
+
+	return os.Rename(tmpName, conf.BackupPath)
+}
+
+func BackupTimestamp(timestamp *Timestamp) error {
+	if timestamp == nil || timestamp.Playlist == "" {
+		return nil
+	}
+
+	backups, err := getBackupStore()
+	if err != nil {
+		return err
+	}
+
+	encodedPlaylist := pkgs.EncodePlaylistName(timestamp.Playlist)
+	toBackup := *timestamp
+	toBackup.Playlist = encodedPlaylist
+	backups[encodedPlaylist] = toBackup
+
+	return saveBackupStore(backups)
+}
+
+func GetBackupTimestamp(playlist string) (*Timestamp, error) {
+	backups, err := getBackupStore()
+	if err != nil {
+		return nil, err
+	}
+
+	encodedPlaylist := pkgs.EncodePlaylistName(playlist)
+	if ts, exists := backups[encodedPlaylist]; exists {
+		return &ts, nil
+	}
+	return nil, nil
+}
+
+func UploadPlaylist(playlist string) (*Timestamp, error) {
+	encodedPlaylist := pkgs.EncodePlaylistName(playlist)
+
+	// Step 1: Check existing current timestamp & back it up before altering
+	current, err := GetTimestamp()
+	if err == nil && current != nil && current.Playlist != "" {
+		if err := BackupTimestamp(current); err != nil {
+			return nil, fmt.Errorf("failed to backup current timestamp: %w", err)
+		}
+	}
+
+	// Step 2: Check whether playlist already exists in current timestamp
+	if current != nil && pkgs.ComparePlaylistName(current.Playlist, playlist) {
+		return current, nil
+	}
+
+	// Step 3: Check backup store for the playlist
+	bak, err := GetBackupTimestamp(playlist)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check backup store: %w", err)
+	}
+
+	if bak != nil {
+		// Restore from backup; keep original updatedAt intact
+		if err := SaveTimestamp(bak); err != nil {
+			return nil, fmt.Errorf("failed to restore timestamp from backup: %w", err)
+		}
+		return bak, nil
+	}
+
+	// Step 4: Absent from bak; initialize default timestamp
+	newTimestamp := defaultTimestamp
+	newTimestamp.Playlist = encodedPlaylist
+	if err := SaveTimestamp(&newTimestamp); err != nil {
+		return nil, fmt.Errorf("failed to initialize timestamp: %w", err)
+	}
+
+	return &newTimestamp, nil
 }

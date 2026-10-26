@@ -34,10 +34,19 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
   );
 };
 
+const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
+  throw new Error(
+    `Playlist upload is not supported in ${Platform.OS}`,
+  );
+};
+
 export {
   checkDirExist,
   loadDir,
-  loadTimestampState, resetTimestamp, saveDir,
-  saveTimestampState
+  loadTimestampState,
+  resetTimestamp,
+  saveDir,
+  saveTimestampState,
+  uploadPlaylist,
 };
 

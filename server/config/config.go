@@ -17,12 +17,13 @@ const (
 )
 
 type Config struct {
-	AppName     string
-	AppNameSlug string
-	StatePath   string
-	Port        string
-	Origin      string
-	Env         ENV
+	AppName       string
+	AppNameSlug   string
+	StatePath     string
+	BackupPath    string
+	Port          string
+	Origin        string
+	Env           ENV
 }
 
 var config Config
@@ -51,11 +52,14 @@ func init() {
 	}
 
 	stateFileName := "timestamps.json"
+	bakFileName := "timestamps.bak.json"
 	if env == ENVDevelopment {
 		stateFileName = "timestamps_dev.json"
+		bakFileName = "timestamps_dev.bak.json"
 	}
 
 	timestampStatePath := filepath.Join(appConfPath, stateFileName)
+	timestampBakPath := filepath.Join(appConfPath, bakFileName)
 
 	timestampStat, err := os.Stat(timestampStatePath)
 
@@ -75,6 +79,7 @@ func init() {
 		AppName:     appName,
 		AppNameSlug: appNameSlug,
 		StatePath:   timestampStatePath,
+		BackupPath:  timestampBakPath,
 		Port:        getEnv("PORT", "4920"),
 		Origin:      getEnv("ORIGIN", "http://localhost:8081"),
 		Env:         env,
@@ -90,4 +95,8 @@ func getEnv(key, fallback string) string {
 
 func Get() Config {
 	return config
+}
+
+func SetForTest(c Config) {
+	config = c
 }

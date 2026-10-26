@@ -98,3 +98,30 @@ func ResetTimestamp(w http.ResponseWriter, r *http.Request) {
 		Message: "timestamp reset successfully",
 	}, nil)
 }
+
+func UploadPlaylist(w http.ResponseWriter, r *http.Request) {
+	playlist := r.PathValue("playlist")
+
+	if playlist == "" {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusBadRequest,
+			Message: "playlist is required",
+		}, nil)
+		return
+	}
+
+	ts, err := service.UploadPlaylist(playlist)
+	if err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to upload playlist timestamp",
+		}, err)
+		return
+	}
+
+	pkgs.SendResponse(w, pkgs.ApiResponse{
+		Status:  http.StatusOK,
+		Message: "playlist uploaded successfully",
+		Data:    ts,
+	}, nil)
+}
