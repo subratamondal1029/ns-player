@@ -51,8 +51,11 @@ func DecodeTimestampJson(data io.ReadCloser) (*Timestamp, error) {
 	return &timestamp, nil
 }
 
-func SaveTimestamp(timestamp *Timestamp) error {
-	conf := config.Get()
+func SaveTimestamp(timestamp *Timestamp, path string) error {
+	if path == "" {
+		conf := config.Get()
+		path = conf.StatePath
+	}
 
 	// Ensure playlist name is always stored encoded
 	timestamp.Playlist = pkgs.EncodePlaylistName(timestamp.Playlist)
@@ -62,13 +65,16 @@ func SaveTimestamp(timestamp *Timestamp) error {
 		return err
 	}
 
-	return os.WriteFile(conf.StatePath, data, 0644)
+	return os.WriteFile(path, data, 0644)
 }
 
-func GetTimestamp() (*Timestamp, error) {
-	conf := config.Get()
+func GetTimestamp(path string) (*Timestamp, error) {
+	if path == "" {
+		conf := config.Get()
+		path = conf.StatePath
+	}
 
-	data, err := os.ReadFile(conf.StatePath)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
