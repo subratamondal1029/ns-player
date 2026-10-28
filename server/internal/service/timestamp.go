@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 
 	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/pkgs"
@@ -106,7 +105,8 @@ func CompareTimestamp(existing, newTimestamp *Timestamp) (*Timestamp, bool, erro
 }
 
 func ResetTimestamp(playlist string) error {
-	existingPlaylist, err := GetTimestamp()
+	conf := config.Get()
+	existingPlaylist, err := GetTimestamp(conf.StatePath)
 
 	if err == nil && existingPlaylist != nil && pkgs.ComparePlaylistName(existingPlaylist.Playlist, playlist) {
 		return nil // already existing playlist no need to overwrite
@@ -114,90 +114,49 @@ func ResetTimestamp(playlist string) error {
 
 	timestamp := defaultTimestamp
 	timestamp.Playlist = pkgs.EncodePlaylistName(playlist)
-	return SaveTimestamp(&timestamp)
-}
-
-func getBackupStore() (map[string]Timestamp, error) {
-	conf := config.Get()
-	data, err := os.ReadFile(conf.BackupPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return make(map[string]Timestamp), nil
-		}
-		return nil, err
-	}
-
-	var backups map[string]Timestamp
-	if err := json.Unmarshal(data, &backups); err != nil {
-		// If empty or invalid json, fallback gracefully
-		return make(map[string]Timestamp), nil
-	}
-	return backups, nil
-}
-
-func saveBackupStore(backups map[string]Timestamp) error {
-	conf := config.Get()
-	data, err := json.Marshal(backups)
-	if err != nil {
-		return err
-	}
-
-	dir := filepath.Dir(conf.BackupPath)
-	tmpFile, err := os.CreateTemp(dir, "timestamps_bak_*.tmp")
-	if err != nil {
-		return err
-	}
-	tmpName := tmpFile.Name()
-
-	if _, err := tmpFile.Write(data); err != nil {
-		tmpFile.Close()
-		_ = os.Remove(tmpName)
-		return err
-	}
-	if err := tmpFile.Close(); err != nil {
-		_ = os.Remove(tmpName)
-		return err
-	}
-
-	return os.Rename(tmpName, conf.BackupPath)
+	return SaveTimestamp(&timestamp, conf.StatePath)
 }
 
 func BackupTimestamp(timestamp *Timestamp) error {
+	conf := config.Get()
 	if timestamp == nil || timestamp.Playlist == "" {
 		return nil
 	}
 
-	backups, err := getBackupStore()
+	backup, err := GetTimestamp(conf.BackupPath)
 	if err != nil {
 		return err
 	}
 
 	encodedPlaylist := pkgs.EncodePlaylistName(timestamp.Playlist)
-	toBackup := *timestamp
+	toBackup := timestamp
 	toBackup.Playlist = encodedPlaylist
-	backups[encodedPlaylist] = toBackup
+	backup = toBackup
 
-	return saveBackupStore(backups)
+	return SaveTimestamp(backup, conf.BackupPath)
 }
 
 func GetBackupTimestamp(playlist string) (*Timestamp, error) {
-	backups, err := getBackupStore()
+	conf := config.Get()
+	backupTimestamp, err := GetTimestamp(conf.BackupPath)
 	if err != nil {
 		return nil, err
 	}
 
 	encodedPlaylist := pkgs.EncodePlaylistName(playlist)
-	if ts, exists := backups[encodedPlaylist]; exists {
-		return &ts, nil
+	if backupTimestamp != nil && backupTimestamp.Playlist == encodedPlaylist {
+		return backupTimestamp, nil
 	}
+
 	return nil, nil
 }
 
 func UploadPlaylist(playlist string) (*Timestamp, error) {
 	encodedPlaylist := pkgs.EncodePlaylistName(playlist)
+	conf := config.Get()
 
 	// Step 1: Check existing current timestamp & back it up before altering
-	current, err := GetTimestamp()
+	current, err := GetTimestamp(conf.StatePath)
 	if err == nil && current != nil && current.Playlist != "" {
 		if err := BackupTimestamp(current); err != nil {
 			return nil, fmt.Errorf("failed to backup current timestamp: %w", err)
@@ -217,7 +176,7 @@ func UploadPlaylist(playlist string) (*Timestamp, error) {
 
 	if bak != nil {
 		// Restore from backup; keep original updatedAt intact
-		if err := SaveTimestamp(bak); err != nil {
+		if err := SaveTimestamp(bak, conf.StatePath); err != nil {
 			return nil, fmt.Errorf("failed to restore timestamp from backup: %w", err)
 		}
 		return bak, nil
@@ -226,7 +185,7 @@ func UploadPlaylist(playlist string) (*Timestamp, error) {
 	// Step 4: Absent from bak; initialize default timestamp
 	newTimestamp := defaultTimestamp
 	newTimestamp.Playlist = encodedPlaylist
-	if err := SaveTimestamp(&newTimestamp); err != nil {
+	if err := SaveTimestamp(&newTimestamp, conf.StatePath); err != nil {
 		return nil, fmt.Errorf("failed to initialize timestamp: %w", err)
 	}
 
