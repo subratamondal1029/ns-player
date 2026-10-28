@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/internal/service"
 	"github.com/subratamondal1029/ns-player/internal/validator"
 	"github.com/subratamondal1029/ns-player/internal/worker"
@@ -47,6 +48,7 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
+	conf := config.Get()
 	queryParams := r.URL.Query()
 	playlist := queryParams.Get("playlist")
 
@@ -58,7 +60,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timestamp, err := service.GetTimestamp()
+	timestamp, err := service.GetTimestamp(conf.StatePath)
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,

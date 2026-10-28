@@ -34,6 +34,7 @@ func setupTestConfig(t *testing.T) {
 
 func TestUploadPlaylistBackupAndRestore(t *testing.T) {
 	setupTestConfig(t)
+	conf := config.Get()
 
 	// 1. Upload Playlist A for the first time
 	tsA, err := service.UploadPlaylist("playlist-A")
@@ -48,7 +49,7 @@ func TestUploadPlaylistBackupAndRestore(t *testing.T) {
 	tsA.Current.Index = ptr(3)
 	tsA.Current.Timestamp = ptr(123.45)
 	tsA.UpdatedAt = 1700000000000
-	if err := service.SaveTimestamp(tsA); err != nil {
+	if err := service.SaveTimestamp(tsA, conf.StatePath); err != nil {
 		t.Fatalf("failed to save timestamp: %v", err)
 	}
 

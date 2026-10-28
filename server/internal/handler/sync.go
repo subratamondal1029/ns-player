@@ -29,6 +29,7 @@ func GenerateSyncQr(w http.ResponseWriter, r *http.Request) {
 }
 
 func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
+	conf := config.Get()
 	timestamp, err := service.DecodeTimestampJson(r.Body)
 
 	if err != nil {
@@ -48,7 +49,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, err := service.GetTimestamp()
+	existing, err := service.GetTimestamp(conf.StatePath)
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
@@ -88,7 +89,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = service.SaveTimestamp(updatedTimestamp)
+	err = service.SaveTimestamp(updatedTimestamp, conf.StatePath)
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
