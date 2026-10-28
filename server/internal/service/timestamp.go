@@ -157,10 +157,8 @@ func UploadPlaylist(playlist string) (*Timestamp, error) {
 
 	// Step 1: Check existing current timestamp & back it up before altering
 	current, err := GetTimestamp(conf.StatePath)
-	if err == nil && current != nil && current.Playlist != "" {
-		if err := BackupTimestamp(current); err != nil {
-			return nil, fmt.Errorf("failed to backup current timestamp: %w", err)
-		}
+	if err != nil {
+		return nil, fmt.Errorf("Error reading current timestamp: %w", err)
 	}
 
 	// Step 2: Check whether playlist already exists in current timestamp
@@ -178,6 +176,9 @@ func UploadPlaylist(playlist string) (*Timestamp, error) {
 		// Restore from backup; keep original updatedAt intact
 		if err := SaveTimestamp(bak, conf.StatePath); err != nil {
 			return nil, fmt.Errorf("failed to restore timestamp from backup: %w", err)
+		}
+		if err := BackupTimestamp(current); err != nil {
+			fmt.Printf("WARN :: error while backup current timestamp :: %v", err)
 		}
 		return bak, nil
 	}
