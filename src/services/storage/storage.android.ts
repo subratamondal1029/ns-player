@@ -99,74 +99,65 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
   }
 };
 
-const getBackupStore = async (): Promise<Record<string, Timestamp>> => {
-  try {
-    const raw = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_BAK_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw);
-  } catch (error) {
-    console.error("Failed to read backup timestamps", error);
-    return {};
-  }
-};
-
-const saveBackupStore = async (
-  backups: Record<string, Timestamp>,
-): Promise<void> => {
+const backupTimestampState = async (timestamp: Timestamp): Promise<void> => {
+  if (!timestamp || !timestamp.playlist) return;
   try {
     await AsyncStorage.setItem(
       ASYNC_STORAGE_TIMESTAMP_BAK_KEY,
-      JSON.stringify(backups),
+      JSON.stringify(timestamp),
     );
   } catch (error) {
-    throw new Error("Failed to save backup timestamps", { cause: error });
+    console.warn("WARN :: error while backup current timestamp ::", error);
   }
-};
-
-const backupTimestampState = async (timestamp: Timestamp): Promise<void> => {
-  if (!timestamp || !timestamp.playlist) return;
-  const backups = await getBackupStore();
-  backups[timestamp.playlist] = timestamp;
-  await saveBackupStore(backups);
 };
 
 const loadBackupTimestampState = async (
   playlist: string,
 ): Promise<Timestamp | null> => {
-  const backups = await getBackupStore();
-  return backups[playlist] ?? null;
+  try {
+    const raw = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_BAK_KEY);
+    if (!raw) return null;
+    const bak: Timestamp = JSON.parse(raw);
+    if (bak && bak.playlist === playlist) {
+      return bak;
+    }
+    return null;
+  } catch (error) {
+    console.error("Failed to read backup timestamp", error);
+    return null;
+  }
 };
 
 const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
   try {
-    // 1. Check current timestamp and back it up before switching/overwriting
-    const rawCurrent = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_KEY);
+    // 1. Check existing current timestamp
     let current: Timestamp | null = null;
-    if (rawCurrent) {
-      try {
+    try {
+      const rawCurrent = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_KEY);
+      if (rawCurrent) {
         current = JSON.parse(rawCurrent);
-        if (current && current.playlist) {
-          await backupTimestampState(current);
-        }
-      } catch (err) {
-        console.error("Failed to parse current timestamp for backup", err);
       }
+    } catch (err) {
+      throw new Error("Error reading current timestamp", { cause: err });
     }
 
-    // 2. If playlist already matches current timestamp, keep it
+    // 2. Check whether playlist already exists in current timestamp
     if (current && current.playlist === playlist) {
       return current;
     }
 
-    // 3. Check backup store for this playlist
+    // 3. Check backup store for the playlist
     const bak = await loadBackupTimestampState(playlist);
     if (bak) {
-      // Restore from backup keeping original updatedAt intact
+      // Restore from backup; keep original updatedAt intact
       await saveTimestampState(bak);
+      if (current && current.playlist) {
+        await backupTimestampState(current);
+      }
       return bak;
     }
 
-    // 4. Absent from backup, initialize default
+    // 4. Absent from backup, initialize default timestamp
     const defaultState: Timestamp = {
       playlist,
       current: {
