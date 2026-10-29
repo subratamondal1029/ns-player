@@ -4,6 +4,10 @@ import {
   ASYNC_STORAGE_TIMESTAMP_KEY,
 } from "@/constants";
 import { Timestamp } from "@/types/timestamp.types";
+import {
+  comparePlaylistName,
+  encodePlaylistName,
+} from "@/utils/playlistName";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory } from "expo-file-system";
 
@@ -45,9 +49,13 @@ const checkDirExist = async (): Promise<boolean> => {
 
 const saveTimestampState = async (timestamp: Timestamp): Promise<void> => {
   try {
+    const toSave: Timestamp = {
+      ...timestamp,
+      playlist: encodePlaylistName(timestamp.playlist),
+    };
     await AsyncStorage.setItem(
       ASYNC_STORAGE_TIMESTAMP_KEY,
-      JSON.stringify(timestamp),
+      JSON.stringify(toSave),
     );
   } catch (error) {
     throw new Error("Timestamp state save failed", { cause: error });
@@ -64,7 +72,7 @@ const loadTimestampState = async (
 
     if (timestampJson) {
       const timestamp = JSON.parse(timestampJson);
-      if (timestamp.playlist === playlist) {
+      if (timestamp && comparePlaylistName(timestamp.playlist, playlist)) {
         return timestamp;
       } else return null;
     } else return null;
@@ -77,12 +85,12 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
   try {
     const existingPlaylist = await loadTimestampState(playlist);
 
-    if (existingPlaylist && existingPlaylist.playlist === playlist) {
+    if (existingPlaylist && comparePlaylistName(existingPlaylist.playlist, playlist)) {
       return; // already existing playlist no need to overwrite
     }
 
     await saveTimestampState({
-      playlist,
+      playlist: encodePlaylistName(playlist),
       current: {
         index: 0,
         timestamp: 0.0,
@@ -102,9 +110,13 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
 const backupTimestampState = async (timestamp: Timestamp): Promise<void> => {
   if (!timestamp || !timestamp.playlist) return;
   try {
+    const toBackup: Timestamp = {
+      ...timestamp,
+      playlist: encodePlaylistName(timestamp.playlist),
+    };
     await AsyncStorage.setItem(
       ASYNC_STORAGE_TIMESTAMP_BAK_KEY,
-      JSON.stringify(timestamp),
+      JSON.stringify(toBackup),
     );
   } catch (error) {
     console.warn("WARN :: error while backup current timestamp ::", error);
@@ -118,7 +130,7 @@ const loadBackupTimestampState = async (
     const raw = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_BAK_KEY);
     if (!raw) return null;
     const bak: Timestamp = JSON.parse(raw);
-    if (bak && bak.playlist === playlist) {
+    if (bak && comparePlaylistName(bak.playlist, playlist)) {
       return bak;
     }
     return null;
@@ -130,6 +142,8 @@ const loadBackupTimestampState = async (
 
 const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
   try {
+    const encodedPlaylist = encodePlaylistName(playlist);
+
     // 1. Check existing current timestamp
     let current: Timestamp | null = null;
     try {
@@ -144,7 +158,7 @@ const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
     }
 
     // 2. Check whether playlist already exists in current timestamp
-    if (current && current.playlist === playlist) {
+    if (current && comparePlaylistName(current.playlist, playlist)) {
       return current;
     }
 
@@ -164,7 +178,7 @@ const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
 
     // 4. Absent from backup, initialize default timestamp
     const defaultState: Timestamp = {
-      playlist,
+      playlist: encodedPlaylist,
       current: {
         index: 0,
         timestamp: 0.0,
