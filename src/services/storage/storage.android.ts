@@ -133,7 +133,9 @@ const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
     // 1. Check existing current timestamp
     let current: Timestamp | null = null;
     try {
-      const rawCurrent = await AsyncStorage.getItem(ASYNC_STORAGE_TIMESTAMP_KEY);
+      const rawCurrent = await AsyncStorage.getItem(
+        ASYNC_STORAGE_TIMESTAMP_KEY,
+      );
       if (rawCurrent) {
         current = JSON.parse(rawCurrent);
       }
@@ -148,12 +150,15 @@ const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
 
     // 3. Check backup store for the playlist
     const bak = await loadBackupTimestampState(playlist);
+
+    // Backup current playlist timestamp before switching/overwriting
+    if (current && current.playlist) {
+      await backupTimestampState(current);
+    }
+
     if (bak) {
       // Restore from backup; keep original updatedAt intact
       await saveTimestampState(bak);
-      if (current && current.playlist) {
-        await backupTimestampState(current);
-      }
       return bak;
     }
 
@@ -185,6 +190,6 @@ export {
   resetTimestamp,
   saveDir,
   saveTimestampState,
-  uploadPlaylist,
+  uploadPlaylist
 };
 

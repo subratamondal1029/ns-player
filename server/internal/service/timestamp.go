@@ -172,13 +172,17 @@ func UploadPlaylist(playlist string) (*Timestamp, error) {
 		return nil, fmt.Errorf("failed to check backup store: %w", err)
 	}
 
+	// Backup current playlist timestamp before switching/overwriting
+	if current != nil && current.Playlist != "" {
+		if err := BackupTimestamp(current); err != nil {
+			fmt.Printf("WARN :: error while backup current timestamp :: %v\n", err)
+		}
+	}
+
 	if bak != nil {
 		// Restore from backup; keep original updatedAt intact
 		if err := SaveTimestamp(bak, conf.StatePath); err != nil {
 			return nil, fmt.Errorf("failed to restore timestamp from backup: %w", err)
-		}
-		if err := BackupTimestamp(current); err != nil {
-			fmt.Printf("WARN :: error while backup current timestamp :: %v", err)
 		}
 		return bak, nil
 	}
