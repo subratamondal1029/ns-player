@@ -15,4 +15,5 @@ export const APP_CONFIG_STORE_KEY = "config";
 // AsyncStorage (Android)
 export const ASYNC_STORAGE_DIR_KEY = "@ns-player/dir_main";
 export const ASYNC_STORAGE_TIMESTAMP_KEY = "@ns-player/timestamp";
+export const ASYNC_STORAGE_TIMESTAMP_BAK_KEY = "@ns-player/timestamp_bak";
 export const ASYNC_STORAGE_CONFIG_KEY = "@ns-player/config";
