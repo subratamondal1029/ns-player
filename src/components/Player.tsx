@@ -57,7 +57,6 @@ export default function VideoPlayer({
     video.initialTimestamp || 0,
   );
 
-  const playerRef = useRef<View | null>(null);
   const videoRef = useRef<VideoView>(null);
   const initialLoad = useRef<boolean>(false);
   const timestampIntervalId = useRef<number | null>(null);
@@ -348,7 +347,6 @@ export default function VideoPlayer({
   return (
     <Pressable
       className={`flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none ${showControls ? "cursor-default" : "cursor-none"}`}
-      ref={playerRef}
       {...(Platform.OS === "web"
         ? {
             onPointerMove: () => handleControlToggle(true),
