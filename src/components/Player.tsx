@@ -114,10 +114,8 @@ export default function VideoPlayer({
     if (!readyVideo) return;
     if (player.playing) {
       player.pause();
-      setShowControls(true);
     } else {
       player.play();
-      handleControlToggle(false);
     }
 
     const feedBackCom = player.playing ? (
@@ -127,6 +125,10 @@ export default function VideoPlayer({
     );
     triggerFeedback(feedBackCom);
   };
+
+  useEffect(() => {
+    handleControlToggle(!isPlaying);
+  }, [isPlaying]);
 
   const changeVideo = (nextVideo: boolean = true) => {
     if (!hasNext || !readyVideo) return;
@@ -381,7 +383,7 @@ export default function VideoPlayer({
         {subtitle?.trim() ? (
           <View
             pointerEvents="none"
-            className="absolute bottom-6 sm:bottom-12 md:bottom-20 lg:bottom-24 w-full px-4 items-center justify-center z-10"
+            className="absolute bottom-6 sm:bottom-12 md:bottom-20 lg:bottom-24 w-full px-4 items-center justify-center z-25"
           >
             <Text className="max-w-[85%] sm:max-w-xl md:max-w-2xl lg:max-w-3xl bg-black/80 text-white font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded leading-snug">
               {subtitle.trim()}
@@ -389,163 +391,166 @@ export default function VideoPlayer({
           </View>
         ) : null}
 
+        {(!readyVideo || status === "loading") && (
+          <View
+            pointerEvents="none"
+            className="absolute inset-0 flex justify-center items-center w-full h-full z-28"
+          >
+            <ActivityIndicator
+              size="large"
+              color="#fff"
+              className="scale-150"
+            />
+          </View>
+        )}
+
         <View
           pointerEvents={showControls ? "box-none" : "none"}
           className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/30 z-30 ${
-            showControls ? "opacity-100" : "opacity-0 "
+            showControls ? "opacity-100" : "opacity-0"
           }`}
         >
-          {readyVideo ? (
-            <>
-              {/* title & back */}
-              <View
-                pointerEvents="auto"
-                className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6"
-              >
-                <Pressable
-                  onPress={onBack}
-                  hitSlop={12}
-                  className="w-10 h-10 items-center justify-center rounded-full active:bg-white/10"
-                >
-                  <Text>
-                    <ChevronLeft color="#fff" size={28} />
-                  </Text>
-                </Pressable>
+          {/* title & back - always accessible even when loading */}
+          <View
+            pointerEvents="auto"
+            className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6"
+          >
+            <Pressable
+              onPress={onBack}
+              hitSlop={12}
+              className="w-10 h-10 items-center justify-center rounded-full active:bg-white/10"
+            >
+              <Text>
+                <ChevronLeft color="#fff" size={28} />
+              </Text>
+            </Pressable>
 
-                <Text
-                  className="flex-1 text-neutral-100 text-sm sm:text-base font-medium text-center tracking-wide px-2"
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {video.title}
+            <Text
+              className="flex-1 text-neutral-100 text-sm sm:text-base font-medium text-center tracking-wide px-2"
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {video.title}
+            </Text>
+
+            <View className="w-10" />
+          </View>
+
+          <View className="w-full flex-1 pointer-events-none" />
+
+          {/* main controls */}
+          {readyVideo && (
+            <View
+              pointerEvents="auto"
+              className="w-full pb-4 pt-1 px-4 sm:px-8 gap-2"
+            >
+              {/* progress bar */}
+              <View className="w-full flex-row items-center justify-between gap-3">
+                <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px] text-right">
+                  {formatTimestamp(timestamp)}
                 </Text>
-
-                <View className="w-10" />
+                <Slider
+                  style={{
+                    flex: 1,
+                    width: "100%",
+                    height: 24,
+                    cursor: "pointer",
+                  }}
+                  minimumValue={0}
+                  maximumValue={100}
+                  step={1}
+                  value={progress}
+                  onSlidingStart={onSlidingStart}
+                  onValueChange={onSeekChange}
+                  onSlidingComplete={onSeekComplete}
+                  tapToSeek
+                  minimumTrackTintColor="#3b82f6"
+                  maximumTrackTintColor="#d5dbe8"
+                  thumbTintColor="#60a5fa"
+                  thumbSize={12}
+                />
+                <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px]">
+                  {formatTimestamp(player.duration || 0)}
+                </Text>
               </View>
 
-              <View className="w-full flex-1 pointer-events-none" />
+              {/* controls buttons */}
+              <View className="flex-row justify-between items-center px-2 sm:px-4">
+                {/* Playback Controls */}
+                <View className="flex-row items-center gap-3 sm:gap-5">
+                  <Pressable
+                    className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20 active:scale-95"
+                    onPress={playPause}
+                  >
+                    <Text>
+                      {isPlaying ? (
+                        <Pause color="#fff" size={22} />
+                      ) : (
+                        <Play color="#fff" size={22} />
+                      )}
+                    </Text>
+                  </Pressable>
 
-              {/* main controls */}
-              <View
-                pointerEvents="auto"
-                className="w-full pb-4 pt-1 px-4 sm:px-8 gap-2"
-              >
-                {/* progress bar */}
-                <View className="w-full flex-row items-center justify-between gap-3">
-                  <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px] text-right">
-                    {formatTimestamp(timestamp)}
-                  </Text>
-                  <Slider
-                    style={{
-                      flex: 1,
-                      width: "100%",
-                      height: 24,
-                      cursor: "pointer",
-                    }}
-                    minimumValue={0}
-                    maximumValue={100}
-                    step={1}
-                    value={progress}
-                    onSlidingStart={onSlidingStart}
-                    onValueChange={onSeekChange}
-                    onSlidingComplete={onSeekComplete}
-                    tapToSeek
-                    minimumTrackTintColor="#3b82f6"
-                    maximumTrackTintColor="#d5dbe8"
-                    thumbTintColor="#60a5fa"
-                    thumbSize={12}
-                  />
-                  <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px]">
-                    {formatTimestamp(player.duration || 0)}
-                  </Text>
+                  <Pressable
+                    className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                    disabled={!hasPrev}
+                    onPress={changeVideo.bind(null, false)}
+                  >
+                    <Text>
+                      <SkipBack
+                        color={hasPrev ? "#fff" : "#52525b"}
+                        size={22}
+                      />
+                    </Text>
+                  </Pressable>
+
+                  <Pressable
+                    className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                    disabled={!hasNext}
+                    onPress={changeVideo.bind(null, true)}
+                  >
+                    <Text>
+                      <SkipForward
+                        color={hasNext ? "#fff" : "#52525b"}
+                        size={22}
+                      />
+                    </Text>
+                  </Pressable>
                 </View>
 
-                {/* controls buttons */}
-                <View className="flex-row justify-between items-center px-2 sm:px-4">
-                  {/* Playback Controls */}
-                  <View className="flex-row items-center gap-3 sm:gap-5">
+                {/* Utility Controls */}
+                <View className="flex-row items-center gap-2 sm:gap-4">
+                  <Pressable
+                    disabled={video.subtitle === null}
+                    onPress={toggleSubtitle}
+                    className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
+                  >
+                    <Text>
+                      {video.subtitle === null ? (
+                        <CaptionsOff color="#52525b" size={22} />
+                      ) : subtitleEnabled.current ? (
+                        <Captions color="#60a5fa" size={22} />
+                      ) : (
+                        <CaptionsOff color="#fff" size={22} />
+                      )}
+                    </Text>
+                  </Pressable>
+                  {Platform.OS === "web" && (
                     <Pressable
-                      className="w-10 h-10 items-center justify-center rounded-full bg-white/10 active:bg-white/20 active:scale-95"
-                      onPress={playPause}
+                      onPress={toggleFullscreen}
+                      className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
                     >
                       <Text>
-                        {isPlaying ? (
-                          <Pause color="#fff" size={22} />
+                        {isFullscreen ? (
+                          <Minimize color="#fff" size={22} />
                         ) : (
-                          <Play color="#fff" size={22} />
+                          <Maximize color="#fff" size={22} />
                         )}
                       </Text>
                     </Pressable>
-
-                    <Pressable
-                      className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
-                      disabled={!hasPrev}
-                      onPress={changeVideo.bind(null, false)}
-                    >
-                      <Text>
-                        <SkipBack
-                          color={hasPrev ? "#fff" : "#52525b"}
-                          size={22}
-                        />
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
-                      disabled={!hasNext}
-                      onPress={changeVideo.bind(null, true)}
-                    >
-                      <Text>
-                        <SkipForward
-                          color={hasNext ? "#fff" : "#52525b"}
-                          size={22}
-                        />
-                      </Text>
-                    </Pressable>
-                  </View>
-
-                  {/* Utility Controls */}
-                  <View className="flex-row items-center gap-2 sm:gap-4">
-                    <Pressable
-                      disabled={video.subtitle === null}
-                      onPress={toggleSubtitle}
-                      className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
-                    >
-                      <Text>
-                        {video.subtitle === null ? (
-                          <CaptionsOff color="#52525b" size={22} />
-                        ) : subtitleEnabled.current ? (
-                          <Captions color="#60a5fa" size={22} />
-                        ) : (
-                          <CaptionsOff color="#fff" size={22} />
-                        )}
-                      </Text>
-                    </Pressable>
-                    {Platform.OS === "web" && (
-                      <Pressable
-                        onPress={toggleFullscreen}
-                        className="w-9 h-9 items-center justify-center rounded-full active:bg-white/10 active:scale-95"
-                      >
-                        <Text>
-                          {isFullscreen ? (
-                            <Minimize color="#fff" size={22} />
-                          ) : (
-                            <Maximize color="#fff" size={22} />
-                          )}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
+                  )}
                 </View>
               </View>
-            </>
-          ) : (
-            <View className="flex justify-center items-center w-full h-full">
-              <ActivityIndicator
-                size="large"
-                color="#fff"
-                className="scale-150"
-              />
             </View>
           )}
         </View>
