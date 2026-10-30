@@ -10,7 +10,7 @@ import {
 const QuickControl = ({
   updateTimestamp,
   playPause,
-  hideControls,
+  toggleControls,
 }: QuickControlProps) => {
   const lastTapTime = useRef<{ left: number; right: number; center: number }>({
     left: 0,
@@ -50,10 +50,10 @@ const QuickControl = ({
     }
   };
 
-  const handleHideControl = () => {
+  const handleSingleTap = () => {
     clearSingleTapTimer();
     singleTapTimeout.current = setTimeout(() => {
-      hideControls();
+      toggleControls();
       singleTapTimeout.current = null;
     }, 350);
   };
@@ -80,7 +80,7 @@ const QuickControl = ({
         skipTimeout.current[side] = null;
       }, 750);
     } else {
-      handleHideControl();
+      handleSingleTap();
     }
   };
 
@@ -91,7 +91,7 @@ const QuickControl = ({
       clearSingleTapTimer();
       controls.center();
     } else {
-      handleHideControl();
+      handleSingleTap();
     }
   };
 

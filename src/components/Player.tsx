@@ -94,14 +94,15 @@ export default function VideoPlayer({
     }, duration);
   };
 
-  const handleControlToggle = (show: boolean) => {
+  const handleControlToggle = (show?: boolean) => {
     if (controlsVisibleTimeout.current !== null) {
       clearTimeout(controlsVisibleTimeout.current);
       controlsVisibleTimeout.current = null;
     }
 
-    setShowControls(show);
-    if (show && player.playing) {
+    const nextShow = typeof show === "boolean" ? show : !showControls;
+    setShowControls(nextShow);
+    if (nextShow && player.playing) {
       controlsVisibleTimeout.current = setTimeout(() => {
         setShowControls(false);
         controlsVisibleTimeout.current = null;
@@ -345,16 +346,8 @@ export default function VideoPlayer({
   }, [video.uri]);
 
   return (
-    <Pressable
+    <View
       className={`flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none ${showControls ? "cursor-default" : "cursor-none"}`}
-      {...(Platform.OS === "web"
-        ? {
-            onPointerMove: () => handleControlToggle(true),
-            onPointerLeave: () => handleControlToggle(false),
-          }
-        : {
-            onPress: () => handleControlToggle(true),
-          })}
     >
       <StatusBar hidden />
 
@@ -370,6 +363,21 @@ export default function VideoPlayer({
           fullscreenOptions={{ enable: false }}
         />
 
+        {readyVideo && (
+          <View className="absolute inset-0 z-20">
+            <QuickControl
+              onNext={changeVideo.bind(null, true)}
+              onPrev={changeVideo.bind(null, false)}
+              playPause={playPause}
+              subtitleToggle={toggleSubtitle}
+              updateTimestamp={seekTimestamp}
+              toggleControls={handleControlToggle}
+              closePlayer={onBack}
+              toggleFullscreen={toggleFullscreen}
+            />
+          </View>
+        )}
+
         {subtitle?.trim() ? (
           <View
             pointerEvents="none"
@@ -382,14 +390,18 @@ export default function VideoPlayer({
         ) : null}
 
         <View
-          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/50 z-30 ${
-            showControls ? "opacity-100" : "opacity-0 pointer-events-none"
+          pointerEvents={showControls ? "box-none" : "none"}
+          className={`w-full h-full absolute top-0 left-0 right-0 items-center justify-between bg-black/30 z-30 ${
+            showControls ? "opacity-100" : "opacity-0 "
           }`}
         >
           {readyVideo ? (
             <>
               {/* title & back */}
-              <View className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6">
+              <View
+                pointerEvents="auto"
+                className="flex-row items-center justify-between w-full h-14 px-4 sm:px-6"
+              >
                 <Pressable
                   onPress={onBack}
                   hitSlop={12}
@@ -411,20 +423,13 @@ export default function VideoPlayer({
                 <View className="w-10" />
               </View>
 
-              {/* quick controls */}
-              <QuickControl
-                onNext={changeVideo.bind(null, true)}
-                onPrev={changeVideo.bind(null, false)}
-                playPause={playPause}
-                subtitleToggle={toggleSubtitle}
-                updateTimestamp={seekTimestamp}
-                hideControls={() => handleControlToggle(false)}
-                closePlayer={onBack}
-                toggleFullscreen={toggleFullscreen}
-              />
+              <View className="w-full flex-1 pointer-events-none" />
 
               {/* main controls */}
-              <View className="w-full pb-4 pt-1 px-4 sm:px-8 gap-2">
+              <View
+                pointerEvents="auto"
+                className="w-full pb-4 pt-1 px-4 sm:px-8 gap-2"
+              >
                 {/* progress bar */}
                 <View className="w-full flex-row items-center justify-between gap-3">
                   <Text className="text-neutral-300 text-xs sm:text-sm font-medium min-w-[45px] text-right">
@@ -547,7 +552,7 @@ export default function VideoPlayer({
 
         <Feedback>{feedback}</Feedback>
       </View>
-    </Pressable>
+    </View>
   );
 }
 
