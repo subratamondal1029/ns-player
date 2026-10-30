@@ -35,29 +35,6 @@ const QuickControl = ({
   });
 
   useEffect(() => {
-    controlsRef.current = {
-      k: playPause,
-      " ": playPause,
-      N: onNext,
-      P: onPrev,
-      c: subtitleToggle,
-      f: toggleFullscreen,
-      ArrowLeft: () => updateTimestamp(10, false),
-      ArrowRight: () => updateTimestamp(10, true),
-      Home: () => updateTimestamp(0),
-      Escape: closePlayer,
-    };
-  }, [
-    playPause,
-    onNext,
-    onPrev,
-    subtitleToggle,
-    toggleFullscreen,
-    updateTimestamp,
-    closePlayer,
-  ]);
-
-  useEffect(() => {
     const abCtrl = new AbortController();
 
     // Global keyboard and browser navigation events.
@@ -73,14 +50,6 @@ const QuickControl = ({
       {
         signal: abCtrl.signal,
       },
-    );
-
-    window.addEventListener(
-      "popstate",
-      (e: PopStateEvent) => {
-        console.log("back trigger");
-      },
-      { signal: abCtrl.signal },
     );
 
     // Pointer tracking for controls visibility.
