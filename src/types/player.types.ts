@@ -23,7 +23,7 @@ export interface QuickControlProps {
   onNext: () => void;
   playPause: () => void;
   subtitleToggle: () => void;
-  hideControls: () => void;
+  toggleControls: (show?: boolean) => void;
   closePlayer: () => void;
   toggleFullscreen: () => void;
 }
