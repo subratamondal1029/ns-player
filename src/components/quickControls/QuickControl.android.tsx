@@ -2,9 +2,9 @@ import { QuickControlProps } from "@/types/player.types";
 import { useEffect, useRef } from "react";
 import { Pressable, View } from "react-native";
 import {
-  Gesture,
   GestureDetector,
   GestureHandlerRootView,
+  useTapGesture,
 } from "react-native-gesture-handler";
 
 const QuickControl = ({
@@ -95,29 +95,26 @@ const QuickControl = ({
     }
   };
 
-  const createSingleTapGesture = (side: "left" | "right" | "center") =>
-    Gesture.Tap()
-      .runOnJS(true)
-      .onEnd(() => {
-        if (side === "center") {
-          handleCenterTap();
-        } else {
-          handleZoneTap(side);
-        }
-      });
+  const leftTapGesture = useTapGesture({
+    runOnJS: true,
+    onDeactivate: () => {
+      handleZoneTap("left");
+    },
+  });
 
-  const verticalPan = Gesture.Pan()
-    .runOnJS(true)
-    .activeOffsetY([-10, 10])
-    .failOffsetX([-30, 30])
-    .onUpdate((_event) => {
-      // TODO: implement volume control
-    });
+  const centerTapGesture = useTapGesture({
+    runOnJS: true,
+    onDeactivate: () => {
+      handleCenterTap();
+    },
+  });
 
-  const rightGesture = Gesture.Exclusive(
-    createSingleTapGesture("right"),
-    verticalPan,
-  );
+  const rightTapGesture = useTapGesture({
+    runOnJS: true,
+    onDeactivate: () => {
+      handleZoneTap("right");
+    },
+  });
 
   // timeout cleanup
   useEffect(() => {
@@ -135,13 +132,13 @@ const QuickControl = ({
   return (
     <View className="w-full flex-1">
       <GestureHandlerRootView style={{ flex: 1, flexDirection: "row" }}>
-        <GestureDetector gesture={createSingleTapGesture("left")}>
+        <GestureDetector gesture={leftTapGesture}>
           <Pressable className="w-full flex-1" />
         </GestureDetector>
-        <GestureDetector gesture={createSingleTapGesture("center")}>
+        <GestureDetector gesture={centerTapGesture}>
           <Pressable className="w-40" />
         </GestureDetector>
-        <GestureDetector gesture={rightGesture}>
+        <GestureDetector gesture={rightTapGesture}>
           <Pressable className="w-full flex-1" />
         </GestureDetector>
       </GestureHandlerRootView>
