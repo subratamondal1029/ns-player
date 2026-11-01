@@ -39,7 +39,16 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
     }
   }, []);
 
-  // Sync document.title and media metadata
+  // Teardown media session only on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof navigator !== "undefined" && "mediaSession" in navigator) {
+        cleanMediaSession(navigator.mediaSession);
+      }
+    };
+  }, [cleanMediaSession]);
+
+  // Sync document.title and media metadata on video/playlist change
   useEffect(() => {
     if (typeof document === "undefined") return;
 
@@ -50,7 +59,11 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
 
     document.title = formattedTitle;
 
-    if (navigator.mediaSession && navigator.mediaSession.metadata) {
+    if (
+      typeof navigator !== "undefined" &&
+      "mediaSession" in navigator &&
+      "MediaMetadata" in window
+    ) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: videoTitle,
         album: decodedPlaylist,
@@ -59,7 +72,6 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
 
     return () => {
       document.title = originalTitle;
-      cleanMediaSession(navigator.mediaSession)
     };
   }, [videoTitle, decodedPlaylist]);
 
@@ -97,6 +109,17 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
     } catch {
       // Ignore unsupported action errors in certain browsers
     }
+
+    return () => {
+      try {
+        navigator.mediaSession.setActionHandler("play", null);
+        navigator.mediaSession.setActionHandler("pause", null);
+        navigator.mediaSession.setActionHandler("previoustrack", null);
+        navigator.mediaSession.setActionHandler("nexttrack", null);
+      } catch {
+        // Ignore errors on cleanup
+      }
+    };
   }, [hasPrev, hasNext, onPlay, onPause, onNext, onPrev]);
 
   return null;
