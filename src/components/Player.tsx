@@ -134,8 +134,8 @@ export default function VideoPlayer({
 
   const changeVideo = (nextVideo: boolean = true) => {
     if (!readyVideo) return;
-    if(nextVideo && !hasNext) return;
-    if(!nextVideo && !hasPrev) return;
+    if (nextVideo && !hasNext) return;
+    if (!nextVideo && !hasPrev) return;
 
     setReadyVideo(false);
     let Icon: React.ReactNode;
@@ -291,9 +291,18 @@ export default function VideoPlayer({
   useEffect(() => {
     if (status === "readyToPlay" || player.status === "readyToPlay") {
       setReadyVideo(true);
-      if (!initialLoad.current && video.initialTimestamp > 0) {
-        player.currentTime = video.initialTimestamp;
-        initialLoad.current = true;
+      if (!initialLoad.current) {
+        if (video.initialTimestamp > 0) {
+          player.currentTime = video.initialTimestamp;
+          initialLoad.current = true;
+        }
+        // delay autoplay video after initial load
+        setTimeout(() => {
+          if (player.status === "readyToPlay") {
+            player.play();
+            triggerFeedback(<Play color="#fff" size={40} />);
+          }
+        }, 700);
       }
     } else if (status === "loading" || status === "idle") {
       setReadyVideo(false);
