@@ -131,7 +131,10 @@ export default function VideoPlayer({
   }, [isPlaying]);
 
   const changeVideo = (nextVideo: boolean = true) => {
-    if (!hasNext || !readyVideo) return;
+    if (!readyVideo) return;
+    if(nextVideo && !hasNext) return;
+    if(!nextVideo && !hasPrev) return;
+
     setReadyVideo(false);
     let Icon: React.ReactNode;
     if (nextVideo) {
