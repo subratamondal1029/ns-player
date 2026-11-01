@@ -18,6 +18,7 @@ export interface VideoPlayerProps {
 }
 
 export interface QuickControlProps {
+  controlsVisible:  boolean;
   updateTimestamp: (count: number, fwd?: boolean) => void;
   onPrev: () => void;
   onNext: () => void;

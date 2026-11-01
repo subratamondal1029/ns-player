@@ -10,6 +10,7 @@ import { Pressable } from "react-native";
  * @returns JSX.Element
  */
 const QuickControl = ({
+  controlsVisible,
   onNext,
   onPrev,
   playPause,
@@ -85,7 +86,7 @@ const QuickControl = ({
   return (
     <Pressable
       ref={pressableRef}
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: "100%", height: "100%", cursor: controlsVisible ? "default" : "none" }}
       className="w-full h-full flex-1 outline-none focus:outline-none"
       onPress={playPause}
     />
