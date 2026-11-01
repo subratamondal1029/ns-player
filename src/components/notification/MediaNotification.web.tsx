@@ -1,6 +1,6 @@
 import { MediaNotificationProps } from "@/types/notification.types";
 import { decodePlaylistName } from "@/utils/playlistName";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 
 /**
  * Web MediaNotification component.
@@ -17,9 +17,29 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
   onNext,
   onPrev,
 }) => {
-  const decodedPlaylist = decodePlaylistName(playlistName);
+  const decodedPlaylist = useMemo(
+    () => decodePlaylistName(playlistName),
+    [playlistName],
+  );
 
-  // Sync document.title with format: video name | playlist name
+  const cleanMediaSession = useCallback((session: MediaSession) => {
+    if (!session) return;
+    console.log("Cleaning media session");
+
+    try {
+      session.playbackState = "none";
+      session.metadata = null;
+
+      session.setActionHandler("play", null);
+      session.setActionHandler("pause", null);
+      session.setActionHandler("previoustrack", null);
+      session.setActionHandler("nexttrack", null);
+    } catch {
+      // ignore for unsupported browser
+    }
+  }, []);
+
+  // Sync document.title and media metadata
   useEffect(() => {
     if (typeof document === "undefined") return;
 
@@ -30,28 +50,27 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
 
     document.title = formattedTitle;
 
-    return () => {
-      document.title = originalTitle;
-    };
-  }, [videoTitle, decodedPlaylist]);
-
-  // Sync navigator.mediaSession metadata & playbackState
-  useEffect(() => {
-    if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
-      return;
-    }
-
-    if ("MediaMetadata" in window) {
+    if (navigator.mediaSession && navigator.mediaSession.metadata) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: videoTitle,
         album: decodedPlaylist,
       });
     }
 
-    navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
-  }, [videoTitle, decodedPlaylist, isPlaying]);
+    return () => {
+      document.title = originalTitle;
+      cleanMediaSession(navigator.mediaSession)
+    };
+  }, [videoTitle, decodedPlaylist]);
 
-  // Sync navigator.mediaSession action handlers
+  // Sync playbackState
+  useEffect(() => {
+    if (navigator.mediaSession) {
+      navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+    }
+  }, [isPlaying]);
+
+  // Sync action handlers
   useEffect(() => {
     if (typeof navigator === "undefined" || !("mediaSession" in navigator)) {
       return;
@@ -78,17 +97,6 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
     } catch {
       // Ignore unsupported action errors in certain browsers
     }
-
-    return () => {
-      try {
-        navigator.mediaSession.setActionHandler("play", null);
-        navigator.mediaSession.setActionHandler("pause", null);
-        navigator.mediaSession.setActionHandler("previoustrack", null);
-        navigator.mediaSession.setActionHandler("nexttrack", null);
-      } catch {
-        // Ignore errors on cleanup
-      }
-    };
   }, [hasPrev, hasNext, onPlay, onPause, onNext, onPrev]);
 
   return null;
