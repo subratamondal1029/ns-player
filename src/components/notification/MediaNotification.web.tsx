@@ -1,6 +1,5 @@
 import { MediaNotificationProps } from "@/types/notification.types";
-import { decodePlaylistName } from "@/utils/playlistName";
-import React, { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect } from "react";
 
 /**
  * Web MediaNotification component.
@@ -17,11 +16,6 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
   onNext,
   onPrev,
 }) => {
-  const decodedPlaylist = useMemo(
-    () => decodePlaylistName(playlistName),
-    [playlistName],
-  );
-
   const cleanMediaSession = useCallback((session: MediaSession) => {
     if (!session) return;
     console.log("Cleaning media session");
@@ -53,8 +47,8 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
     if (typeof document === "undefined") return;
 
     const originalTitle = document.title;
-    const formattedTitle = decodedPlaylist
-      ? `${videoTitle} | ${decodedPlaylist}`
+    const formattedTitle = playlistName
+      ? `${videoTitle} | ${playlistName}`
       : videoTitle;
 
     document.title = formattedTitle;
@@ -66,14 +60,14 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
     ) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: videoTitle,
-        album: decodedPlaylist,
+        album: playlistName,
       });
     }
 
     return () => {
       document.title = originalTitle;
     };
-  }, [videoTitle, decodedPlaylist]);
+  }, [videoTitle, playlistName]);
 
   // Sync playbackState
   useEffect(() => {
