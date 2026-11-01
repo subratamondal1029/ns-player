@@ -362,9 +362,7 @@ export default function VideoPlayer({
   }, [video.uri]);
 
   return (
-    <View
-      className={`flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none ${showControls ? "cursor-default" : "cursor-none"}`}
-    >
+    <View className="flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none">
       <StatusBar hidden />
 
       <View className="w-full h-full flex-1 justify-center items-center relative">
@@ -382,6 +380,7 @@ export default function VideoPlayer({
         {readyVideo && (
           <View className="absolute inset-0 z-20">
             <QuickControl
+              controlsVisible={showControls}
               onNext={changeVideo.bind(null, true)}
               onPrev={changeVideo.bind(null, false)}
               playPause={playPause}
