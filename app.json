@@ -56,6 +56,12 @@
             "usesCleartextTraffic": true
           }
         }
+      ],
+      [
+        "expo-media-control",
+        {
+          "enableBackgroundAudio": false
+        }
       ]
     ],
     "experiments": {
