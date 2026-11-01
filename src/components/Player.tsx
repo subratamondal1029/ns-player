@@ -354,12 +354,18 @@ export default function VideoPlayer({
     };
   }, [isPlaying, player]);
 
-  // uri cleanup
+  // uri and player playback cleanup
   useEffect(() => {
     return () => {
       cleanUri(video.uri);
+      try {
+        player.pause();
+        player.release?.();
+      } catch {
+        // player might already be released
+      }
     };
-  }, [video.uri]);
+  }, [video.uri, player]);
 
   return (
     <View className="flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none">
