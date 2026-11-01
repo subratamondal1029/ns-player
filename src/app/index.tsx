@@ -18,8 +18,8 @@ import {
   checkDirExist,
   loadDir,
   loadTimestampState,
-  resetTimestamp as resetTimestampState,
   saveDir,
+  uploadPlaylist,
 } from "@/services/storage/storage";
 import { findVideos } from "@/services/video/video";
 import type { Dir } from "@/types/video.type";
@@ -102,8 +102,13 @@ export default function App() {
     try {
       setLoading(true);
       await saveDir(dir, playlist);
-      await resetTimestampState(playlist);
-      await saveLocalState(dir, playlist);
+      const restored = await uploadPlaylist(playlist);
+      setDir(dir);
+      setPlaylist(playlist);
+      if (restored) {
+        resetTimestamp(restored);
+      }
+      await loadVideos(dir, playlist);
     } catch (error) {
       console.error(error);
       Toast.show({

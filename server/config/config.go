@@ -20,6 +20,7 @@ type Config struct {
 	AppName     string
 	AppNameSlug string
 	StatePath   string
+	BackupPath  string
 	Port        string
 	Origin      string
 	Env         ENV
@@ -51,30 +52,38 @@ func init() {
 	}
 
 	stateFileName := "timestamps.json"
+	bakFileName := "timestamps.bak.json"
 	if env == ENVDevelopment {
 		stateFileName = "timestamps_dev.json"
+		bakFileName = "timestamps_dev.bak.json"
 	}
 
 	timestampStatePath := filepath.Join(appConfPath, stateFileName)
+	timestampBakPath := filepath.Join(appConfPath, bakFileName)
 
-	timestampStat, err := os.Stat(timestampStatePath)
+	timestampFiles := [2]string{timestampStatePath, timestampBakPath}
 
-	if err != nil {
-		if os.IsNotExist(err) {
-			if err := os.WriteFile(timestampStatePath, []byte("{}"), 0644); err != nil {
-				log.Panicf("Can't create timestamp file, %v", err)
+	for _, path := range timestampFiles {
+		timestampStat, err := os.Stat(path)
+
+		if err != nil {
+			if os.IsNotExist(err) {
+				if err := os.WriteFile(path, []byte("{}"), 0644); err != nil {
+					log.Panicf("Can't create timestamp file, %v, %s", err, path)
+				}
+			} else {
+				log.Panicf("Error reading timestamp file, %v, %s", err, path)
 			}
-		} else {
-			log.Panicf("Error reading timestamp file, %v", err)
+		} else if timestampStat.IsDir() {
+			log.Panicf("Timestamp file is a directory :: %s", path)
 		}
-	} else if timestampStat.IsDir() {
-		log.Panicln("Timestamp file is a directory")
 	}
 
 	config = Config{
 		AppName:     appName,
 		AppNameSlug: appNameSlug,
 		StatePath:   timestampStatePath,
+		BackupPath:  timestampBakPath,
 		Port:        getEnv("PORT", "4920"),
 		Origin:      getEnv("ORIGIN", "http://localhost:8081"),
 		Env:         env,
@@ -90,4 +99,8 @@ func getEnv(key, fallback string) string {
 
 func Get() Config {
 	return config
+}
+
+func SetForTest(c Config) {
+	config = c
 }
