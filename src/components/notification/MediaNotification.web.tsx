@@ -44,8 +44,7 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
     if ("MediaMetadata" in window) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: videoTitle,
-        artist: decodedPlaylist || undefined,
-        album: decodedPlaylist || undefined,
+        album: decodedPlaylist,
       });
     }
 
