@@ -95,6 +95,7 @@ const ActiveAndroidMediaNotification: React.FC<MediaNotificationProps> = ({
   // Initialize and update media control capabilities based on hasNext / hasPrev
   useEffect(() => {
     if (!MediaControl || !Command) return;
+    if (AppState.currentState !== "active") return;
 
     const capabilities = [Command.PLAY, Command.PAUSE];
     const compactCapabilities = [Command.PLAY];
@@ -117,6 +118,7 @@ const ActiveAndroidMediaNotification: React.FC<MediaNotificationProps> = ({
   // Sync track metadata
   useEffect(() => {
     if (!MediaControl) return;
+    if (AppState.currentState !== "active") return;
 
     MediaControl.updateMetadata({
       title: videoTitle,
@@ -127,6 +129,7 @@ const ActiveAndroidMediaNotification: React.FC<MediaNotificationProps> = ({
   // Sync playback state
   useEffect(() => {
     if (!MediaControl || !PlaybackState) return;
+    if (AppState.currentState !== "active") return;
 
     MediaControl.updatePlaybackState(
       isPlaying ? PlaybackState.PLAYING : PlaybackState.PAUSED,
