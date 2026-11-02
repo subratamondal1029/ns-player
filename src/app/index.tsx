@@ -102,8 +102,8 @@ export default function App() {
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
       setLoading(true);
-      await saveDir(dir, playlist);
       const restored = await uploadPlaylist(playlist);
+      await saveDir(dir, playlist);
       setDir(dir);
       setPlaylist(playlist);
       if (restored) {
