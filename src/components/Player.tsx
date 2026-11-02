@@ -19,7 +19,13 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -316,17 +322,15 @@ export default function VideoPlayer({
     if (status === "readyToPlay" || player.status === "readyToPlay") {
       setReadyVideo(true);
       if (!initialLoad.current) {
+        initialLoad.current = true;
         if (video.initialTimestamp > 0) {
           player.currentTime = video.initialTimestamp;
-          initialLoad.current = true;
         }
         // delay autoplay video after initial load
         setTimeout(() => {
-          if (player.status === "readyToPlay") {
-            player.play();
-            triggerFeedback(<Play color="#fff" size={40} />);
-          }
-        }, 700);
+          player.play();
+          triggerFeedback(<Play color="#fff" size={40} />);
+        }, 500);
       }
     } else if (status === "loading" || status === "idle") {
       setReadyVideo(false);
