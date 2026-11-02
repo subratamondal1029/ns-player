@@ -112,6 +112,13 @@ func ResetTimestamp(playlist string) error {
 		return nil // already existing playlist no need to overwrite
 	}
 
+	// backup before reset
+	if err == nil && existingPlaylist != nil && existingPlaylist.Playlist != "" {
+		if err := BackupTimestamp(existingPlaylist); err != nil {
+			fmt.Printf("WARN :: error while backup existing timestamp :: %v\n", err)
+		}
+	}
+
 	timestamp := defaultTimestamp
 	timestamp.Playlist = pkgs.EncodePlaylistName(playlist)
 	return SaveTimestamp(&timestamp, conf.StatePath)
