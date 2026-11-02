@@ -1,6 +1,6 @@
 import { MediaNotificationProps } from "@/types/notification.types";
 import { requireOptionalNativeModule } from "expo";
-import React, { useEffect, useRef } from "react";
+import React, { memo, useEffect, useRef } from "react";
 import { AppState, AppStateStatus } from "react-native";
 
 // Safely probe if native module is available (e.g. in development APK build vs Expo Go)
@@ -224,4 +224,4 @@ const ActiveAndroidMediaNotification: React.FC<MediaNotificationProps> = ({
   return null;
 };
 
-export default MediaNotification;
+export default memo(MediaNotification);

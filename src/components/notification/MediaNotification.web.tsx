@@ -1,5 +1,5 @@
 import { MediaNotificationProps } from "@/types/notification.types";
-import React, { useCallback, useEffect } from "react";
+import React, { memo, useCallback, useEffect, useRef } from "react";
 
 /**
  * Web MediaNotification component.
@@ -16,6 +16,16 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
   onNext,
   onPrev,
 }) => {
+  const onPlayRef = useRef(onPlay);
+  const onPauseRef = useRef(onPause);
+  const onNextRef = useRef(onNext);
+  const onPrevRef = useRef(onPrev);
+
+  onPlayRef.current = onPlay;
+  onPauseRef.current = onPause;
+  onNextRef.current = onNext;
+  onPrevRef.current = onPrev;
+
   const cleanMediaSession = useCallback((session: MediaSession) => {
     if (!session) return;
     try {
@@ -82,21 +92,21 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
 
     try {
       navigator.mediaSession.setActionHandler("play", () => {
-        onPlay();
+        onPlayRef.current();
       });
 
       navigator.mediaSession.setActionHandler("pause", () => {
-        onPause();
+        onPauseRef.current();
       });
 
       navigator.mediaSession.setActionHandler(
         "previoustrack",
-        hasPrev ? () => onPrev() : null,
+        hasPrev ? () => onPrevRef.current() : null,
       );
 
       navigator.mediaSession.setActionHandler(
         "nexttrack",
-        hasNext ? () => onNext() : null,
+        hasNext ? () => onNextRef.current() : null,
       );
     } catch {
       // Ignore unsupported action errors in certain browsers
@@ -112,9 +122,9 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
         // Ignore errors on cleanup
       }
     };
-  }, [hasPrev, hasNext, onPlay, onPause, onNext, onPrev]);
+  }, [hasPrev, hasNext]);
 
   return null;
 };
 
-export default MediaNotification;
+export default memo(MediaNotification);

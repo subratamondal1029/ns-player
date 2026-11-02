@@ -19,7 +19,7 @@ import {
   SkipBack,
   SkipForward,
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Platform,
@@ -137,23 +137,42 @@ export default function VideoPlayer({
     handleControlToggle(!isPlaying);
   }, [isPlaying]);
 
-  const changeVideo = (nextVideo: boolean = true) => {
-    if (!readyVideo) return;
-    if (nextVideo && !hasNext) return;
-    if (!nextVideo && !hasPrev) return;
+  const changeVideo = useCallback(
+    (nextVideo: boolean = true) => {
+      if (!readyVideo) return;
+      if (nextVideo && !hasNext) return;
+      if (!nextVideo && !hasPrev) return;
 
-    setReadyVideo(false);
-    let Icon: React.ReactNode;
-    if (nextVideo) {
-      Icon = <SkipForward color="#fff" size={40} />;
-      next();
-    } else {
-      Icon = <SkipBack color="#fff" size={40} />;
-      prev();
-    }
+      setReadyVideo(false);
+      let Icon: React.ReactNode;
+      if (nextVideo) {
+        Icon = <SkipForward color="#fff" size={40} />;
+        next();
+      } else {
+        Icon = <SkipBack color="#fff" size={40} />;
+        prev();
+      }
 
-    triggerFeedback(Icon);
-  };
+      triggerFeedback(Icon);
+    },
+    [readyVideo, hasNext, hasPrev, next, prev],
+  );
+
+  const handlePlay = useCallback(() => {
+    player.play();
+  }, [player]);
+
+  const handlePause = useCallback(() => {
+    player.pause();
+  }, [player]);
+
+  const handleNext = useCallback(() => {
+    changeVideo(true);
+  }, [changeVideo]);
+
+  const handlePrev = useCallback(() => {
+    changeVideo(false);
+  }, [changeVideo]);
 
   const toggleSubtitle = () => {
     if (!video.subtitle) return;
@@ -587,10 +606,10 @@ export default function VideoPlayer({
           isPlaying={isPlaying}
           hasPrev={hasPrev}
           hasNext={hasNext}
-          onPlay={() => player.play()}
-          onPause={() => player.pause()}
-          onNext={() => changeVideo(true)}
-          onPrev={() => changeVideo(false)}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onNext={handleNext}
+          onPrev={handlePrev}
         />
       </View>
     </View>

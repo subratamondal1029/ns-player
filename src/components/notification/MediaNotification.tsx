@@ -1,5 +1,5 @@
 import { MediaNotificationProps } from "@/types/notification.types";
-import React from "react";
+import React, { memo } from "react";
 
 /**
  * Base fallback MediaNotification component.
@@ -9,4 +9,4 @@ const MediaNotification: React.FC<MediaNotificationProps> = () => {
   return null;
 };
 
-export default MediaNotification;
+export default memo(MediaNotification);
