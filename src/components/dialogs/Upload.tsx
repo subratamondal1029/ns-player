@@ -26,7 +26,7 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
   };
 
   const handleConfirm = () => {
-    if (playlist && dir) {
+    if (playlist.trim() && dir) {
       upload(dir, encodePlaylistName(playlist));
 
       setPlaylist("");
