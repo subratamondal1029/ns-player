@@ -141,7 +141,7 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
 const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
   try {
     const res = await apiFetch<Timestamp>(
-      `${SERVER_URL}/timestamp/${playlist}/upload`,
+      `${SERVER_URL}/timestamp/${encodeURIComponent(playlist)}/upload`,
       {
         method: "POST",
       },
@@ -160,5 +160,6 @@ export {
   resetTimestamp,
   saveDir,
   saveTimestampState,
-  uploadPlaylist,
+  uploadPlaylist
 };
+
