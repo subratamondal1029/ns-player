@@ -78,6 +78,7 @@ const player = () => {
         <VideoPlayer
           key={video.uri}
           video={video}
+          playlistName={playlist}
           hasNext={hasNext()}
           hasPrev={hasPrev()}
           onBack={backToList}

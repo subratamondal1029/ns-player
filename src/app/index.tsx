@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  PermissionsAndroid,
   Platform,
   Pressable,
   Text,
@@ -181,6 +182,11 @@ export default function App() {
       checkExistsAndShowConfirm();
     } else {
       loadExistingDir();
+      if (Platform.OS === "android" && Platform.Version >= 33) {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        ).catch(() => {});
+      }
     }
   }, []);
 

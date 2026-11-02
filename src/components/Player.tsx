@@ -1,6 +1,7 @@
 import { useConfig } from "@/context/configContext";
 import { VideoPlayerProps } from "@/types/player.types";
 import formatTimestamp from "@/utils/formatTimestamp";
+import { decodePlaylistName } from "@/utils/playlistName";
 import { findSubtitle } from "@/utils/subtitleParser";
 import Slider from "@react-native-community/slider";
 import { useEvent, useEventListener } from "expo";
@@ -29,6 +30,7 @@ import {
   View,
 } from "react-native";
 import Feedback from "./Feedback";
+import MediaNotification from "./notification/MediaNotification";
 import QuickControl from "./quickControls/QuickControl";
 
 const cleanUri = (uri: string) => {
@@ -38,6 +40,7 @@ const cleanUri = (uri: string) => {
 
 export default function VideoPlayer({
   video,
+  playlistName = "",
   hasNext,
   hasPrev,
   next,
@@ -70,6 +73,10 @@ export default function VideoPlayer({
   const subtitleEnabled = useRef<boolean>(config.subtitle);
   const feedbackTimeout = useRef<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const decodedPlaylist = useMemo(
+    () => decodePlaylistName(playlistName),
+    [playlistName],
+  );
   const progress = useMemo(
     () => (player.duration > 0 ? (timestamp / player.duration) * 100 : 0),
     [timestamp, player.duration],
@@ -352,12 +359,18 @@ export default function VideoPlayer({
     };
   }, [isPlaying, player]);
 
-  // uri cleanup
+  // uri and player playback cleanup
   useEffect(() => {
     return () => {
       cleanUri(video.uri);
+      try {
+        player.pause();
+        player.release?.();
+      } catch {
+        // player might already be released
+      }
     };
-  }, [video.uri]);
+  }, [video.uri, player]);
 
   return (
     <View className="flex-1 w-full h-full bg-black justify-center relative outline-none focus:outline-none">
@@ -567,6 +580,18 @@ export default function VideoPlayer({
         </View>
 
         <Feedback>{feedback}</Feedback>
+
+        <MediaNotification
+          videoTitle={video.title}
+          playlistName={decodedPlaylist}
+          isPlaying={isPlaying}
+          hasPrev={hasPrev}
+          hasNext={hasNext}
+          onPlay={() => player.play()}
+          onPause={() => player.pause()}
+          onNext={next}
+          onPrev={prev}
+        />
       </View>
     </View>
   );

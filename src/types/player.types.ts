@@ -9,6 +9,7 @@ export interface PlayerVideo {
 
 export interface VideoPlayerProps {
   video: PlayerVideo;
+  playlistName?: string;
   hasPrev: boolean;
   hasNext: boolean;
   onBack: () => void;
