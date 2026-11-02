@@ -130,17 +130,11 @@ func BackupTimestamp(timestamp *Timestamp) error {
 		return nil
 	}
 
-	backup, err := GetTimestamp(conf.BackupPath)
-	if err != nil {
-		return err
-	}
-
 	encodedPlaylist := pkgs.EncodePlaylistName(timestamp.Playlist)
 	toBackup := timestamp
 	toBackup.Playlist = encodedPlaylist
-	backup = toBackup
 
-	return SaveTimestamp(backup, conf.BackupPath)
+	return SaveTimestamp(toBackup, conf.BackupPath)
 }
 
 func GetBackupTimestamp(playlist string) (*Timestamp, error) {
