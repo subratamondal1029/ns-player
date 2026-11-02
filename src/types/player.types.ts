@@ -9,6 +9,7 @@ export interface PlayerVideo {
 
 export interface VideoPlayerProps {
   video: PlayerVideo;
+  playlistName?: string;
   hasPrev: boolean;
   hasNext: boolean;
   onBack: () => void;
@@ -18,12 +19,13 @@ export interface VideoPlayerProps {
 }
 
 export interface QuickControlProps {
+  controlsVisible:  boolean;
   updateTimestamp: (count: number, fwd?: boolean) => void;
   onPrev: () => void;
   onNext: () => void;
   playPause: () => void;
   subtitleToggle: () => void;
-  hideControls: () => void;
+  toggleControls: (show?: boolean) => void;
   closePlayer: () => void;
   toggleFullscreen: () => void;
 }

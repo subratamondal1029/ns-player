@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  PermissionsAndroid,
   Platform,
   Pressable,
   Text,
@@ -18,8 +19,8 @@ import {
   checkDirExist,
   loadDir,
   loadTimestampState,
-  resetTimestamp as resetTimestampState,
   saveDir,
+  uploadPlaylist,
 } from "@/services/storage/storage";
 import { findVideos } from "@/services/video/video";
 import type { Dir } from "@/types/video.type";
@@ -101,9 +102,14 @@ export default function App() {
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
       setLoading(true);
+      const restored = await uploadPlaylist(playlist);
       await saveDir(dir, playlist);
-      await resetTimestampState(playlist);
-      await saveLocalState(dir, playlist);
+      setDir(dir);
+      setPlaylist(playlist);
+      if (restored) {
+        resetTimestamp(restored);
+      }
+      await loadVideos(dir, playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -176,6 +182,11 @@ export default function App() {
       checkExistsAndShowConfirm();
     } else {
       loadExistingDir();
+      if (Platform.OS === "android" && Platform.Version >= 33) {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        ).catch(() => {});
+      }
     }
   }, []);
 
@@ -206,7 +217,9 @@ export default function App() {
           {/* Header */}
           <View className="mb-6 items-center">
             <Text className="text-2xl sm:text-3xl font-bold text-neutral-100 text-center tracking-tight">
-              {decodePlaylistName(playlist) || "NS Player"}
+              {dir?.name && playlist
+                ? decodePlaylistName(playlist)
+                : "NS Player"}
             </Text>
           </View>
 
@@ -232,16 +245,16 @@ export default function App() {
             </Pressable>
           </View>
 
-            {dir?.name ? (
-              <View className="flex flex-row justify-between items-center w-full mb-2">
-                <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
-                  {playlist}
-                </Text>
-                <Text className="text-sm text-neutral-400">
-                  {lastPlayedVideoIdx +1}/{videos.length}
-                </Text>
-              </View>
-            ) : null}
+          {dir?.name ? (
+            <View className="flex flex-row justify-between items-center w-full mb-2">
+              <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
+                {playlist}
+              </Text>
+              <Text className="text-sm text-neutral-400">
+                {lastPlayedVideoIdx + 1}/{videos.length}
+              </Text>
+            </View>
+          ) : null}
 
           {/* Main Content */}
           <View className="flex-1">

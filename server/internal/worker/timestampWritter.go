@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/internal/service"
 )
 
 func StartWriterWorker(dataStream <-chan service.Timestamp) {
+	conf := config.Get()
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
 
@@ -22,7 +24,7 @@ func StartWriterWorker(dataStream <-chan service.Timestamp) {
 			if localCopy != nil {
 				count++
 				fmt.Printf("Saving timestamp for playlist: %s (Count: %d)\n", localCopy.Playlist, count)
-				service.SaveTimestamp(localCopy)
+				service.SaveTimestamp(localCopy, conf.StatePath)
 				localCopy = nil
 			}
 		}

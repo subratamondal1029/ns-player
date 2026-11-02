@@ -18,6 +18,7 @@ func main() {
 	mux.HandleFunc("POST /api/timestamp", handler.StoreTimestamp)
 	mux.HandleFunc("GET /api/timestamp", handler.ReadTimestamp)
 	mux.HandleFunc("POST /api/timestamp/{playlist}/reset", handler.ResetTimestamp)
+	mux.HandleFunc("POST /api/timestamp/{playlist}/upload", handler.UploadPlaylist)
 	mux.HandleFunc("GET /api/sync/qr", handler.GenerateSyncQr)
 	mux.HandleFunc("POST /api/sync", handler.SyncTimestamp)
 

@@ -4,6 +4,15 @@ NS Player is an offline-first, cross-platform local video player designed for se
 
 ---
 
+## Features
+
+- **Cross-Platform Playback & Offline Sync**: Seamlessly sync playback progress between Linux and Android using local QR code scanning with last-write-wins resolution.
+- **Last Playlist Backup & Restore**: Automatically backs up and restores the last active playlist state and playback progress across app restarts, reloads, and sessions on both Android and Linux/Web.
+- **System Media Notification Controls**: Integrated system-level media notification controls (Play, Pause, Next, Previous) on both Android (via native media session) and Linux/Web (via Media Session API).
+- **Subtitles Support**: Single-track subtitle loading (`.en.srt`) with persistent subtitle visibility preferences across sessions.
+
+---
+
 ## Architecture Overview
 
 - **Linux (Desktop)**:

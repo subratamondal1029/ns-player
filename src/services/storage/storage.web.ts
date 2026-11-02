@@ -138,6 +138,21 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
   }
 };
 
+const uploadPlaylist = async (playlist: string): Promise<Timestamp> => {
+  try {
+    const res = await apiFetch<Timestamp>(
+      `${SERVER_URL}/timestamp/${encodeURIComponent(playlist)}/upload`,
+      {
+        method: "POST",
+      },
+    );
+    return res;
+  } catch (error) {
+    console.error("Playlist upload failed", error);
+    throw new Error("Playlist upload failed", { cause: error });
+  }
+};
+
 export {
   checkDirExist,
   loadDir,
@@ -145,4 +160,6 @@ export {
   resetTimestamp,
   saveDir,
   saveTimestampState,
+  uploadPlaylist
 };
+
