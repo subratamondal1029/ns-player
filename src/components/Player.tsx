@@ -589,8 +589,8 @@ export default function VideoPlayer({
           hasNext={hasNext}
           onPlay={() => player.play()}
           onPause={() => player.pause()}
-          onNext={next}
-          onPrev={prev}
+          onNext={() => changeVideo(true)}
+          onPrev={() => changeVideo(false)}
         />
       </View>
     </View>
