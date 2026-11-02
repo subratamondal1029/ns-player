@@ -4,10 +4,7 @@ import {
   ASYNC_STORAGE_TIMESTAMP_KEY,
 } from "@/constants";
 import { Timestamp } from "@/types/timestamp.types";
-import {
-  comparePlaylistName,
-  encodePlaylistName,
-} from "@/utils/playlistName";
+import { comparePlaylistName, encodePlaylistName } from "@/utils/playlistName";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Directory } from "expo-file-system";
 
@@ -85,7 +82,10 @@ const resetTimestamp = async (playlist: string): Promise<void> => {
   try {
     const existingPlaylist = await loadTimestampState(playlist);
 
-    if (existingPlaylist && comparePlaylistName(existingPlaylist.playlist, playlist)) {
+    if (
+      existingPlaylist &&
+      comparePlaylistName(existingPlaylist.playlist, playlist)
+    ) {
       return; // already existing playlist no need to overwrite
     }
 
@@ -135,8 +135,7 @@ const loadBackupTimestampState = async (
     }
     return null;
   } catch (error) {
-    console.error("Failed to read backup timestamp", error);
-    return null;
+    throw new Error("Failed to read backup timestamp", { cause: error });
   }
 };
 
