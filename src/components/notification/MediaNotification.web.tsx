@@ -18,8 +18,6 @@ const MediaNotification: React.FC<MediaNotificationProps> = ({
 }) => {
   const cleanMediaSession = useCallback((session: MediaSession) => {
     if (!session) return;
-    console.log("Cleaning media session");
-
     try {
       session.playbackState = "none";
       session.metadata = null;
