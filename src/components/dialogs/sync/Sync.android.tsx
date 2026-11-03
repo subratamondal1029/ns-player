@@ -19,6 +19,7 @@ import {
   Linking,
   Modal,
   Pressable,
+  StyleSheet,
   Text,
   View,
 } from "react-native";
@@ -99,61 +100,95 @@ const Sync = ({
       animationType="fade"
     >
       <View className="flex-1 justify-center items-center bg-black/70 p-4">
-        <View className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl">
+        <View className="w-full max-w-sm rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl overflow-hidden">
           {loading ? (
-            <View className="h-36 flex-1 justify-center items-center">
-              <ActivityIndicator
-                color="#fff"
-                size="large"
-                className="mx-auto"
-              />
+            <View className="h-72 w-full justify-center items-center">
+              <ActivityIndicator color="#fff" size="large" />
             </View>
           ) : !cameraPermission?.granted ? (
-            <View className="h-52 justify-center items-center gap-4 px-2">
-              <Text className="text-gray-300 text-center text-sm">
-                Camera access is required to scan the sync QR code.
-              </Text>
-              {cameraPermission?.canAskAgain ? (
+            <View className="h-72 w-full justify-between items-center py-4">
+              <View className="items-center gap-2">
+                <Text className="text-xl font-medium text-neutral-100 text-center">
+                  Camera Permission
+                </Text>
+                <Text className="text-base text-neutral-400 text-center px-2">
+                  Camera access is required to scan the sync QR code.
+                </Text>
+              </View>
+
+              <View className="flex-row justify-center items-center gap-3 w-full">
                 <Pressable
-                  onPress={requestCameraPermission}
-                  className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
+                  onPress={onClose}
+                  className="px-5 py-3 rounded-xl bg-neutral-800 active:bg-neutral-700"
                 >
-                  <Text className="text-sm font-semibold text-white">
-                    Grant Permission
+                  <Text className="text-base font-medium text-neutral-300">
+                    Cancel
                   </Text>
                 </Pressable>
-              ) : (
-                <Pressable
-                  onPress={() => Linking.openSettings()}
-                  className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
-                >
-                  <Text className="text-sm font-semibold text-white">
-                    Open Settings
-                  </Text>
-                </Pressable>
-              )}
+
+                {cameraPermission?.canAskAgain ? (
+                  <Pressable
+                    onPress={requestCameraPermission}
+                    className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
+                  >
+                    <Text className="text-base font-semibold text-white">
+                      Grant Permission
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <Pressable
+                    onPress={() => Linking.openSettings()}
+                    className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
+                  >
+                    <Text className="text-base font-semibold text-white">
+                      Open Settings
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
           ) : url && scanned && !loading ? (
-            <View className="h-36 flex flex-col justify-between items-center">
-              <Text className="text-gray-200 text-xl text-center">
-                Sync{" "}
-                <Text className="text-gray-100 font-semibold">{playlist}</Text>
-              </Text>
-              <View className="flex-row justify-center items-center gap-3">
+            <View className="h-72 w-full justify-between items-center py-4">
+              <View className="items-center gap-2">
+                <Text className="text-xl font-medium text-neutral-100 text-center">
+                  Confirm Sync
+                </Text>
+                <Text className="text-base text-neutral-400 text-center px-2">
+                  Sync timestamp for{" "}
+                  <Text className="text-neutral-100 font-semibold">
+                    {playlist || url}
+                  </Text>
+                  ?
+                </Text>
+              </View>
+
+              <View className="flex-row justify-center items-center gap-3 w-full">
+                <Pressable
+                  onPress={onClose}
+                  className="px-5 py-3 rounded-xl bg-neutral-800 active:bg-neutral-700"
+                >
+                  <Text className="text-base font-medium text-neutral-300">
+                    Cancel
+                  </Text>
+                </Pressable>
+
                 <Pressable
                   onPress={synchronize}
-                  className="w-full max-w-28 px-4 py-4 rounded-xl bg-blue-600 active:bg-blue-500 text-center"
+                  className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
                 >
-                  <Text className="text-sm font-semibold text-white text-center">
+                  <Text className="text-base font-semibold text-white">
                     Confirm
                   </Text>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <View className="w-full h-80 rounded-xl overflow-hidden bg-black relative">
+            <View
+              className="h-72 w-full rounded-xl bg-black relative"
+              style={{ overflow: "hidden" }}
+            >
               <CameraView
-                style={{ width: "100%", height: "100%" }}
+                style={StyleSheet.absoluteFill}
                 facing="back"
                 barcodeScannerSettings={{
                   barcodeTypes: ["qr"],
