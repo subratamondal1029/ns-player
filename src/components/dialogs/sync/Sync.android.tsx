@@ -183,18 +183,36 @@ const Sync = ({
               </View>
             </View>
           ) : (
-            <View
-              className="h-72 w-full rounded-xl bg-black relative"
-              style={{ overflow: "hidden" }}
-            >
-              <CameraView
-                style={StyleSheet.absoluteFill}
-                facing="back"
-                barcodeScannerSettings={{
-                  barcodeTypes: ["qr"],
+            <View className="items-center w-full">
+              <View
+                style={{
+                  width: 270,
+                  height: 360,
+                  borderRadius: 16,
+                  overflow: "hidden",
+                  backgroundColor: "#000",
                 }}
-                onBarcodeScanned={handleScan}
-              />
+              >
+                <CameraView
+                  style={{
+                    width: 270,
+                    height: 360,
+                  }}
+                  facing="back"
+                  barcodeScannerSettings={{
+                    barcodeTypes: ["qr"],
+                  }}
+                  onBarcodeScanned={handleScan}
+                />
+              </View>
+              <Pressable
+                onPress={onClose}
+                className="mt-4 px-5 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700"
+              >
+                <Text className="text-base font-medium text-neutral-300">
+                  Cancel
+                </Text>
+              </Pressable>
             </View>
           )}
         </View>
