@@ -14,7 +14,14 @@ import {
   useEffect,
   useState,
 } from "react";
-import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  Modal,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
 
 const Sync = ({
   visible,
@@ -28,7 +35,7 @@ const Sync = ({
   const { rawTimestamp, resetTimestamp } = useTimestamp();
   const [scanned, setScanned] = useState<boolean>(false);
   const [url, setUrl] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
@@ -69,13 +76,20 @@ const Sync = ({
   };
 
   useEffect(() => {
-    if (cameraPermission && !cameraPermission.granted) {
-      setLoading(true);
+    if (
+      visible &&
+      cameraPermission &&
+      !cameraPermission.granted &&
+      cameraPermission.canAskAgain
+    ) {
       requestCameraPermission();
-    } else if (cameraPermission && cameraPermission.granted) {
-      setLoading(false);
     }
-  }, [cameraPermission]);
+  }, [
+    visible,
+    cameraPermission?.granted,
+    cameraPermission?.canAskAgain,
+    requestCameraPermission,
+  ]);
 
   return (
     <Modal
@@ -93,6 +107,31 @@ const Sync = ({
                 size="large"
                 className="mx-auto"
               />
+            </View>
+          ) : !cameraPermission?.granted ? (
+            <View className="h-52 justify-center items-center gap-4 px-2">
+              <Text className="text-gray-300 text-center text-sm">
+                Camera access is required to scan the sync QR code.
+              </Text>
+              {cameraPermission?.canAskAgain ? (
+                <Pressable
+                  onPress={requestCameraPermission}
+                  className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
+                >
+                  <Text className="text-sm font-semibold text-white">
+                    Grant Permission
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={() => Linking.openSettings()}
+                  className="px-5 py-3 rounded-xl bg-blue-600 active:bg-blue-500"
+                >
+                  <Text className="text-sm font-semibold text-white">
+                    Open Settings
+                  </Text>
+                </Pressable>
+              )}
             </View>
           ) : url && scanned && !loading ? (
             <View className="h-36 flex flex-col justify-between items-center">
