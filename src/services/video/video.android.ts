@@ -4,12 +4,15 @@ import { Directory, File } from "expo-file-system";
 const findFile = (dir: Directory, fileName: string): File | null => {
   try {
     const files = dir.list();
-    return files.find((f) => f instanceof File && f.name === fileName) as File | undefined || null;
+    return (
+      (files.find((f) => f instanceof File && f.name === fileName) as
+        File | undefined) || null
+    );
   } catch (error) {
     console.error("Error occurred while finding file:", error);
-    return null
+    return null;
   }
-}
+};
 
 const findVideos = async (dir: Directory): Promise<Video[]> => {
   try {
@@ -43,6 +46,26 @@ const getVideoUri = async (
   }
 };
 
+const getSubtitleContent = async (
+  dir: Directory,
+  fileName: string,
+): Promise<string | null> => {
+  try {
+    const file = findFile(dir, fileName);
+
+    if (!file) return null;
+
+    const content = (await file.text()).trim();
+
+    if (!content) return null;
+
+    return content;
+  } catch (error) {
+    console.error("Error occurred while retrieving subtitle content:", error);
+    return null;
+  }
+};
+
 const getVideoRawSubtitle = async (
   dir: Directory,
   videoName: string,
@@ -50,12 +73,18 @@ const getVideoRawSubtitle = async (
 ): Promise<string | null> => {
   try {
     const movieBaseName = videoName.substring(0, videoName.lastIndexOf("."));
-    const srtFileName = `${movieBaseName}.${language || "en"}.srt`;
-    const file = findFile(dir, srtFileName);
-    if (!file) return null;
-    
-    const content = await file.text();
-    if (!content.trim()) return null;
+    const subtitleFileBaseName = `${movieBaseName}.${language}`;
+
+    // find vtt
+    let content: string | null = await getSubtitleContent(
+      dir,
+      `${subtitleFileBaseName}.vtt`,
+    );
+
+    if (!content) {
+      // find srt
+      content = await getSubtitleContent(dir, `${subtitleFileBaseName}.srt`);
+    }
 
     return content;
   } catch (error) {

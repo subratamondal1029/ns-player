@@ -12,7 +12,7 @@ import { useVideo } from "@/context/videoContext";
 import { loadDir } from "@/services/storage/storage";
 import { getVideoRawSubtitle, getVideoUri } from "@/services/video/video";
 import { PlayerVideo } from "@/types/player.types";
-import { srtParser } from "@/utils/subtitleParser";
+import { subtitleParser } from "@/utils/subtitleParser";
 
 const player = () => {
   const { videos, currentVideoIdx, hasNext, hasPrev, next, prev } = useVideo();
@@ -30,23 +30,36 @@ const player = () => {
 
   useEffect(() => {
     const loadVideo = async () => {
-      const currentVideo = videos[currentVideoIdx];
+      try {
+        const currentVideo = videos[currentVideoIdx];
 
-      const dir = await loadDir();
-      if (!dir) return;
+        const dir = await loadDir();
+        if (!dir) return;
 
-      const playbackUri = await getVideoUri(dir.dir, currentVideo.name);
-      if (!playbackUri) return;
+        const playbackUri = await getVideoUri(dir.dir, currentVideo.name);
+        if (!playbackUri) return;
 
-      const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
-      const rawSubtitle = await getVideoRawSubtitle(dir.dir, currentVideo.name);
-      setPlaylist(dir.playlist);
-      setVideo({
-        title: currentVideo.name,
-        uri: playbackUri,
-        initialTimestamp: timestamp,
-        subtitle: rawSubtitle ? srtParser(rawSubtitle) : null,
-      });
+        const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
+        let rawSubtitle: string | null = null;
+
+        try {
+          rawSubtitle = await getVideoRawSubtitle(dir.dir, currentVideo.name);
+        } catch {
+          console.warn("subtitle retrieve failed");
+        }
+
+        setPlaylist(dir.playlist);
+        setVideo({
+          title: currentVideo.name,
+          uri: playbackUri,
+          initialTimestamp: timestamp,
+          subtitle: rawSubtitle ? subtitleParser(rawSubtitle) : null,
+        });
+      } catch (error) {
+        console.error("Error occurred while loading video:", error);
+        alert((error as Error).message);
+        backToList();
+      }
     };
 
     if (currentVideoIdx !== -1) {

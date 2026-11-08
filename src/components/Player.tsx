@@ -60,6 +60,9 @@ export default function VideoPlayer({
 
   const [showControls, setShowControls] = useState<boolean>(true);
   const [readyVideo, setReadyVideo] = useState<boolean>(false);
+  const [subtitleEnabled, setSubtitleEnabled] = useState<boolean>(
+    config.subtitle,
+  );
   const [subtitle, setSubtitle] = useState<string>("");
   const [feedback, setFeedback] = useState<React.ReactNode | null>(null);
   const [timestamp, setTimestamp] = useState<number>(
@@ -76,7 +79,6 @@ export default function VideoPlayer({
   const accumulatedTimestamp = useRef<number>(video.initialTimestamp || 0);
   const seekBaseTimestamp = useRef<number>(video.initialTimestamp || 0);
   const subtitleIntervalId = useRef<number | null>(null);
-  const subtitleEnabled = useRef<boolean>(config.subtitle);
   const feedbackTimeout = useRef<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const decodedPlaylist = useMemo(
@@ -182,8 +184,8 @@ export default function VideoPlayer({
 
   const toggleSubtitle = () => {
     if (!video.subtitle) return;
-    const nextSubtitleEnabled = !subtitleEnabled.current;
-    subtitleEnabled.current = nextSubtitleEnabled;
+    const nextSubtitleEnabled = !subtitleEnabled;
+    setSubtitleEnabled(nextSubtitleEnabled);
     saveConfig("subtitle", nextSubtitleEnabled);
 
     if (nextSubtitleEnabled) {
@@ -207,14 +209,17 @@ export default function VideoPlayer({
     }
   };
 
-  const updateSubtitle = (timestamp: number) => {
-    if (!video.subtitle || !player.playing) return;
-    if (subtitleEnabled.current) {
-      setSubtitle(findSubtitle(video.subtitle, timestamp + 0.3, 0.2));
-    } else {
-      setSubtitle("");
-    }
-  };
+  const updateSubtitle = useCallback(
+    (timestamp: number) => {
+      if (!video.subtitle || !player.playing) return;
+      if (subtitleEnabled) {
+        setSubtitle(findSubtitle(video.subtitle, timestamp + 0.3, 0.2));
+      } else {
+        setSubtitle("");
+      }
+    },
+    [video.subtitle, player.playing, subtitleEnabled],
+  );
 
   const updateTimestampStates = (newTimestamp: number) => {
     setTimestamp(newTimestamp);
@@ -348,7 +353,7 @@ export default function VideoPlayer({
         }, 1000);
       }
 
-      if (subtitleEnabled.current && subtitleIntervalId.current === null) {
+      if (subtitleEnabled && subtitleIntervalId.current === null) {
         subtitleIntervalId.current = setInterval(() => {
           if (!seeking.current) {
             updateSubtitle(player.currentTime);
@@ -380,7 +385,7 @@ export default function VideoPlayer({
         subtitleIntervalId.current = null;
       }
     };
-  }, [isPlaying, player]);
+  }, [isPlaying, player, subtitleEnabled]);
 
   // uri and player playback cleanup
   useEffect(() => {
@@ -575,7 +580,7 @@ export default function VideoPlayer({
                     <Text>
                       {video.subtitle === null ? (
                         <CaptionsOff color="#52525b" size={22} />
-                      ) : subtitleEnabled.current ? (
+                      ) : subtitleEnabled ? (
                         <Captions color="#60a5fa" size={22} />
                       ) : (
                         <CaptionsOff color="#fff" size={22} />
