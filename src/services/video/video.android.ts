@@ -46,6 +46,25 @@ const getVideoUri = async (
   }
 };
 
+const getSubtitleContent = async (
+  dir: Directory,
+  fileName: string,
+): Promise<string | null> => {
+  try {
+    const file = findFile(dir, fileName);
+
+    if (!file) return null;
+
+    const content = (await file.text()).trim();
+
+    if (!content) return null;
+
+    return content;
+  } catch (error) {
+    throw new Error("Failed to retrieve subtitle content", { cause: error });
+  }
+};
+
 const getVideoRawSubtitle = async (
   dir: Directory,
   videoName: string,
@@ -56,16 +75,15 @@ const getVideoRawSubtitle = async (
     const subtitleFileBaseName = `${movieBaseName}.${language}`;
 
     // find vtt
-    let file: File | null = findFile(dir, `${subtitleFileBaseName}.vtt`);
+    let content: string | null = await getSubtitleContent(
+      dir,
+      `${subtitleFileBaseName}.vtt`,
+    );
 
-    if (!file) {
+    if (!content) {
       // find srt
-      file = findFile(dir, `${subtitleFileBaseName}.srt`);
-      if (!file) return null;
+      content = await getSubtitleContent(dir, `${subtitleFileBaseName}.srt`);
     }
-
-    const content = (await file.text()).trim();
-    if (!content) return null;
 
     return content;
   } catch (error) {
