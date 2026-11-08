@@ -61,7 +61,8 @@ const getSubtitleContent = async (
 
     return content;
   } catch (error) {
-    throw new Error("Failed to retrieve subtitle content", { cause: error });
+    console.error("Error occurred while retrieving subtitle content:", error);
+    return null;
   }
 };
 
