@@ -41,7 +41,7 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { videos, setVideos, playNow } = useVideo();
-  const { lastPlayedVideoIdx, resetTimestamp } = useTimestamp();
+  const { currentVideoIdx, previousVideoIdx, resetTimestamp } = useTimestamp();
 
   const saveLocalState = async (dir: Dir, playlist: string) => {
     setDir(dir);
@@ -145,7 +145,7 @@ export default function App() {
     const continueKeyPressListener = (e: KeyboardEvent) => {
       if (e.key === "k") {
         e.preventDefault();
-        openPlayer(lastPlayedVideoIdx);
+        openPlayer(currentVideoIdx);
       }
     };
 
@@ -158,7 +158,7 @@ export default function App() {
         window.removeEventListener("keypress", continueKeyPressListener);
       }
     };
-  }, [lastPlayedVideoIdx, openPlayer]);
+  }, [currentVideoIdx, openPlayer]);
 
   useEffect(() => {
     const checkExistsAndShowConfirm = async () => {
@@ -251,7 +251,7 @@ export default function App() {
                 {playlist}
               </Text>
               <Text className="text-sm text-neutral-400">
-                {lastPlayedVideoIdx + 1}/{videos.length}
+                {currentVideoIdx + 1}/{videos.length}
               </Text>
             </View>
           ) : null}
@@ -268,7 +268,8 @@ export default function App() {
             ) : videos.length > 0 ? (
               <VideoList
                 videos={videos}
-                continueVideoIdx={lastPlayedVideoIdx}
+                continueVideoIdx={currentVideoIdx}
+                previousVideoIdx={previousVideoIdx}
                 play={openPlayer}
               />
             ) : (
@@ -287,7 +288,7 @@ export default function App() {
           {videos.length > 0 && (
             <View className="fixed bottom-6 left-[85%] z-50">
               <Pressable
-                onPress={() => openPlayer(lastPlayedVideoIdx)}
+                onPress={() => openPlayer(currentVideoIdx)}
                 className="w-16 h-16 justify-center items-center rounded-full bg-blue-600 active:bg-blue-500 shadow-xl shadow-blue-500/30"
               >
                 <Play color="#fff" size={28} />
