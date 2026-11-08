@@ -1,12 +1,12 @@
 import type { SubtitleEntry } from "@/types/player.types";
 import { parse } from "@plussub/srt-vtt-parser";
 
-const subtitleParser = (raw: string): SubtitleEntry[] => {
+const subtitleParser = (raw: string): SubtitleEntry[] |null => {
   try {
     return parse(raw).entries;
   } catch (error) {
     console.error("Error occurred while parsing subtitle:", error);
-    return [];
+    return null;
   }
 };
 
