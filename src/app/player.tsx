@@ -58,7 +58,7 @@ const player = () => {
       } catch (error) {
         console.error("Error occurred while loading video:", error);
         alert((error as Error).message);
-        router.back();
+        backToList();
       }
     };
 
