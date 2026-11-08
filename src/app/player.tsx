@@ -40,10 +40,14 @@ const player = () => {
         if (!playbackUri) return;
 
         const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
-        const rawSubtitle = await getVideoRawSubtitle(
-          dir.dir,
-          currentVideo.name,
-        );
+        let rawSubtitle: string | null = null;
+
+        try {
+          rawSubtitle = await getVideoRawSubtitle(dir.dir, currentVideo.name);
+        } catch {
+          console.warn("subtitle retrieve failed");
+        }
+
         setPlaylist(dir.playlist);
         setVideo({
           title: currentVideo.name,
