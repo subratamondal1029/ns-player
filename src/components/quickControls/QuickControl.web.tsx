@@ -36,6 +36,29 @@ const QuickControl = ({
   });
 
   useEffect(() => {
+    controlsRef.current = {
+      k: playPause,
+      " ": playPause,
+      N: onNext,
+      P: onPrev,
+      c: subtitleToggle,
+      f: toggleFullscreen,
+      ArrowLeft: () => updateTimestamp(10, false),
+      ArrowRight: () => updateTimestamp(10, true),
+      Home: () => updateTimestamp(0),
+      Escape: closePlayer,
+    };
+  }, [
+    playPause,
+    onNext,
+    onPrev,
+    subtitleToggle,
+    toggleFullscreen,
+    updateTimestamp,
+    closePlayer,
+  ]);
+
+  useEffect(() => {
     const abCtrl = new AbortController();
 
     // Global keyboard and browser navigation events.
@@ -86,7 +109,11 @@ const QuickControl = ({
   return (
     <Pressable
       ref={pressableRef}
-      style={{ width: "100%", height: "100%", cursor: controlsVisible ? "default" : "none" }}
+      style={{
+        width: "100%",
+        height: "100%",
+        cursor: controlsVisible ? "default" : "none",
+      }}
       className="w-full h-full flex-1 outline-none focus:outline-none"
       onPress={playPause}
     />
