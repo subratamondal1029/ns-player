@@ -30,23 +30,32 @@ const player = () => {
 
   useEffect(() => {
     const loadVideo = async () => {
-      const currentVideo = videos[currentVideoIdx];
+      try {
+        const currentVideo = videos[currentVideoIdx];
 
-      const dir = await loadDir();
-      if (!dir) return;
+        const dir = await loadDir();
+        if (!dir) return;
 
-      const playbackUri = await getVideoUri(dir.dir, currentVideo.name);
-      if (!playbackUri) return;
+        const playbackUri = await getVideoUri(dir.dir, currentVideo.name);
+        if (!playbackUri) return;
 
-      const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
-      const rawSubtitle = await getVideoRawSubtitle(dir.dir, currentVideo.name);
-      setPlaylist(dir.playlist);
-      setVideo({
-        title: currentVideo.name,
-        uri: playbackUri,
-        initialTimestamp: timestamp,
-        subtitle: rawSubtitle ? subtitleParser(rawSubtitle) : null,
-      });
+        const timestamp = getTimestamp(dir.playlist, currentVideoIdx);
+        const rawSubtitle = await getVideoRawSubtitle(
+          dir.dir,
+          currentVideo.name,
+        );
+        setPlaylist(dir.playlist);
+        setVideo({
+          title: currentVideo.name,
+          uri: playbackUri,
+          initialTimestamp: timestamp,
+          subtitle: rawSubtitle ? subtitleParser(rawSubtitle) : null,
+        });
+      } catch (error) {
+        console.error("Error occurred while loading video:", error);
+        alert((error as Error).message);
+        router.back();
+      }
     };
 
     if (currentVideoIdx !== -1) {
