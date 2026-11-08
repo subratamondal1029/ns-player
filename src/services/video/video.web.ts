@@ -53,7 +53,7 @@ const getVideoUri = async (
 const getVideoRawSubtitle = async (
   dir: FileSystemDirectoryHandle,
   videoName: string,
-  language?: string,
+  language: string = "en",
 ): Promise<string | null> => {
   try {
     const movieBaseName = videoName.substring(0, videoName.lastIndexOf("."));
@@ -61,12 +61,14 @@ const getVideoRawSubtitle = async (
 
     // find vtt
     let file: File | null = await findFile(dir, `${subtitleFileBaseName}.vtt`);
+    console.log(file)
 
     if (!file) {
       // find srt
       file = await findFile(dir, `${subtitleFileBaseName}.srt`);
       if (!file) return null;
     }
+
 
     const content = (await file.text()).trim();
 
