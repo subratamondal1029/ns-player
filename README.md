@@ -40,7 +40,7 @@ Synchronization works completely offline over your local Wi-Fi / LAN network usi
 To ensure proper media tracking, subtitle loading, and synchronization across devices:
 
 - **Video Naming Convention**: Video files within a playlist must follow sequential numbering prefix format (e.g., `001`, `002`, `003`, etc.).
-- **Subtitle Support (English only for now)**: Single-track `.srt` or `.vtt` subtitle files matching the video base name with the `.en.srt` extension will be loaded and synchronized automatically.
+- **Subtitle Support (English only for now)**: Single-track subtitle files matching the video base name with the `.en.srt` or `.en.vtt` extension will be loaded and synchronized automatically.
 
 | Type         | Format / Example            |
 | :----------- | :-------------------------- |
