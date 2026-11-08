@@ -57,13 +57,21 @@ const getVideoRawSubtitle = async (
 ): Promise<string | null> => {
   try {
     const movieBaseName = videoName.substring(0, videoName.lastIndexOf("."));
-    const srtFileName = `${movieBaseName}.${language || "en"}.srt`;
+    const subtitleFileBaseName = `${movieBaseName}.${language}`;
 
-    let file: File | null = await findFile(dir, srtFileName);
+    // find vtt
+    let file: File | null = await findFile(dir, `${subtitleFileBaseName}.vtt`);
 
-    if (!file) return null;
+    if (!file) {
+      // find srt
+      file = await findFile(dir, `${subtitleFileBaseName}.srt`);
+      if (!file) return null;
+    }
 
-    return await file.text();
+    const content = (await file.text()).trim();
+
+    if (!content) return null;
+    return content;
   } catch (error) {
     console.error("Error occurred while retrieving video raw subtitle:", error);
     throw new Error("Failed to retrieve video raw subtitle", { cause: error });

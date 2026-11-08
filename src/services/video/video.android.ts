@@ -4,12 +4,15 @@ import { Directory, File } from "expo-file-system";
 const findFile = (dir: Directory, fileName: string): File | null => {
   try {
     const files = dir.list();
-    return files.find((f) => f instanceof File && f.name === fileName) as File | undefined || null;
+    return (
+      (files.find((f) => f instanceof File && f.name === fileName) as
+        File | undefined) || null
+    );
   } catch (error) {
     console.error("Error occurred while finding file:", error);
-    return null
+    return null;
   }
-}
+};
 
 const findVideos = async (dir: Directory): Promise<Video[]> => {
   try {
@@ -50,12 +53,19 @@ const getVideoRawSubtitle = async (
 ): Promise<string | null> => {
   try {
     const movieBaseName = videoName.substring(0, videoName.lastIndexOf("."));
-    const srtFileName = `${movieBaseName}.${language || "en"}.srt`;
-    const file = findFile(dir, srtFileName);
-    if (!file) return null;
-    
-    const content = await file.text();
-    if (!content.trim()) return null;
+    const subtitleFileBaseName = `${movieBaseName}.${language}`;
+
+    // find vtt
+    let file: File | null = findFile(dir, `${subtitleFileBaseName}.vtt`);
+
+    if (!file) {
+      // find srt
+      file = findFile(dir, `${subtitleFileBaseName}.srt`);
+      if (!file) return null;
+    }
+
+    const content = (await file.text()).trim();
+    if (!content) return null;
 
     return content;
   } catch (error) {

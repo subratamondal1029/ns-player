@@ -11,7 +11,10 @@ const findSubtitle = (
   offSet = 0.2,
 ): string => {
   const subtitles = subs.filter(
-    (sub) => sub.from <= currentTime && currentTime < sub.to + offSet,
+    (sub) =>
+      sub.from <= currentTime &&
+      currentTime < sub.to + offSet &&
+      sub.text.trim(),
   );
 
   if (subtitles.length === 0) {

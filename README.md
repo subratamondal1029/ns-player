@@ -9,7 +9,7 @@ NS Player is an offline-first, cross-platform local video player designed for se
 - **Cross-Platform Playback & Offline Sync**: Seamlessly sync playback progress between Linux and Android using local QR code scanning with last-write-wins resolution.
 - **Last Playlist Backup & Restore**: Automatically backs up and restores the last active playlist state and playback progress across app restarts, reloads, and sessions on both Android and Linux/Web.
 - **System Media Notification Controls**: Integrated system-level media notification controls (Play, Pause, Next, Previous) on both Android (via native media session) and Linux/Web (via Media Session API).
-- **Subtitles Support**: Single-track subtitle loading (`.en.srt`) with persistent subtitle visibility preferences across sessions.
+- **Subtitles Support**: Single-track subtitle loading (`.en.srt` or `.en.vtt`) with persistent subtitle visibility preferences across sessions.
 
 ---
 
@@ -40,7 +40,7 @@ Synchronization works completely offline over your local Wi-Fi / LAN network usi
 To ensure proper media tracking, subtitle loading, and synchronization across devices:
 
 - **Video Naming Convention**: Video files within a playlist must follow sequential numbering prefix format (e.g., `001`, `002`, `003`, etc.).
-- **Subtitle Support (English only for now)**: Single-track `.srt` subtitle files matching the video base name with the `.en.srt` extension will be loaded and synchronized automatically.
+- **Subtitle Support (English only for now)**: Single-track `.srt` or `.vtt` subtitle files matching the video base name with the `.en.srt` extension will be loaded and synchronized automatically.
 
 | Type         | Format / Example            |
 | :----------- | :-------------------------- |
@@ -73,13 +73,6 @@ Official pre-built binaries are available on the [Releases](https://github.com/s
 2. Install the APK on your Android device.
 
 ---
-
-## Roadmap
-
-- [x] Subtitle support (Single-track English `.en.srt`)
-- [x] Improved double-tap skip functionality
-- [ ] Pan-gesture volume controls
-- [ ] Automatic local network device discovery and seamless background sync
 
 > [!NOTE]
 > This application was designed around a personal workflow and specific requirements. If you have different preferences or feature needs, feel free to fork the repository and tailor it to your use case.
