@@ -12,7 +12,7 @@ import { useVideo } from "@/context/videoContext";
 import { loadDir } from "@/services/storage/storage";
 import { getVideoRawSubtitle, getVideoUri } from "@/services/video/video";
 import { PlayerVideo } from "@/types/player.types";
-import { srtParser } from "@/utils/subtitleParser";
+import { subtitleParser } from "@/utils/subtitleParser";
 
 const player = () => {
   const { videos, currentVideoIdx, hasNext, hasPrev, next, prev } = useVideo();
@@ -45,7 +45,7 @@ const player = () => {
         title: currentVideo.name,
         uri: playbackUri,
         initialTimestamp: timestamp,
-        subtitle: rawSubtitle ? srtParser(rawSubtitle) : null,
+        subtitle: rawSubtitle ? subtitleParser(rawSubtitle) : null,
       });
     };
 

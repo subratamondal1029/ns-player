@@ -1,10 +1,12 @@
-import { Dialogue } from "@ltftf/srt-parser-2";
+import {parse} from "@plussub/srt-vtt-parser"
+
+export type SubtitleEntry = ReturnType<typeof parse>["entries"][number]
 
 export interface PlayerVideo {
   title: string;
   uri: string;
   initialTimestamp: number;
-  subtitle: Dialogue[] | null;
+  subtitle: SubtitleEntry[] | null;
 }
 
 export interface VideoPlayerProps {

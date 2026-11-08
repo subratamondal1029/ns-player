@@ -1,25 +1,24 @@
-import { Dialogue, fromSrt } from "@ltftf/srt-parser-2";
+import type { SubtitleEntry } from "@/types/player.types";
+import { parse } from "@plussub/srt-vtt-parser";
 
-const srtParser = (srt: string): Dialogue[] => {
-  const subs = fromSrt(srt);
-  return subs;
+const subtitleParser = (raw: string): SubtitleEntry[] => {
+  return parse(raw).entries;
 };
 
 const findSubtitle = (
-  subs: Dialogue[],
+  subs: SubtitleEntry[],
   currentTime: number,
   offSet = 0.2,
 ): string => {
   const subtitles = subs.filter(
-    (sub) =>
-      sub.startSeconds <= currentTime && currentTime < sub.endSeconds + offSet,
+    (sub) => sub.from <= currentTime && currentTime < sub.to + offSet,
   );
 
   if (subtitles.length === 0) {
     return "";
   }
 
-  return subtitles.map((sub) => sub.lines.join("\n")).join("\n");
+  return subtitles.map((sub) => sub.text).join("\n");
 };
 
-export { findSubtitle, srtParser };
+export { findSubtitle, subtitleParser };
