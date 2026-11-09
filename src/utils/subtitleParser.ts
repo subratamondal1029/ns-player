@@ -27,11 +27,7 @@ const findSubtitle = (
       currentTime < sub.to / 1000 + offSet &&
       text
     ) {
-      if (text.startsWith("♫") && cues[0]?.startsWith("♫")) {
-        cues.unshift(text);
-      } else {
-        cues.push(text);
-      }
+      cues.push(text);
     }
   }
 
