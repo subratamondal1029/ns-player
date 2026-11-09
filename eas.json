@@ -17,6 +17,9 @@
     "local": {
       "distribution": "internal",
       "environment": "production",
+      "env": {
+        "GRADLE_OPTS": "-Dorg.gradle.jvmargs=\"-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8\""
+      },
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease --stacktrace --info"
