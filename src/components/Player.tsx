@@ -437,7 +437,7 @@ export default function VideoPlayer({
             pointerEvents="none"
             className="absolute bottom-6 sm:bottom-12 md:bottom-20 lg:bottom-24 w-full px-4 items-center justify-center z-25"
           >
-            <Text className="max-w-[85%] sm:max-w-xl md:max-w-2xl lg:max-w-3xl bg-black/80 text-white font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded leading-snug">
+            <Text className="max-w-[85%] sm:max-w-xl md:max-w-2xl lg:max-w-3xl bg-black/80 text-white font-medium text-center text-xs sm:text-sm md:text-base lg:text-lg px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded leading-snug text-wrap">
               {subtitle.trim()}
             </Text>
           </View>
