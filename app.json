@@ -57,7 +57,11 @@
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": true,
+            "extraGradleProperties": {
+              "org.gradle.jvmargs": "-Xmx6144m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8",
+              "org.gradle.workers.max": "2"
+            }
           }
         }
       ],

@@ -1,0 +1,6 @@
+JVM heap memory error 
+need to solve with 
+
+  "org.gradle.jvmargs":
+    "-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8",
+  "org.gradle.workers.max": "2"

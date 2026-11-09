@@ -60,34 +60,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare diagnostics dirs
-        run: mkdir -p "$RUNNER_TEMP/gradle-daemon"
-
       - name: Build APK
         run: ./scripts/build-android.sh
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Diagnostics
-        if: failure()
-        run: |
-          sudo chown -R "$USER":"$USER" "$RUNNER_TEMP/gradle-daemon" || true
-          tail -n 200 "$RUNNER_TEMP"/gradle-daemon/*/daemon-*.out.log || true
-          sudo dmesg | grep -i -E 'out of memory|oom|killed process' || true
-
-      - name: Upload Gradle logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-reports
-          path: ${{ runner.temp }}/gradle-daemon/**/*.log
-          if-no-files-found: warn
 
       - uses: actions/upload-artifact@v7
         with:
           name: android
           path: build/android/ns-player.apk
           if-no-files-found: error
+
 
   web-build:
     needs: verify-version
