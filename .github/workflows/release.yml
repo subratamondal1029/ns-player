@@ -58,12 +58,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          df -h
-          df -i
-          free -h
-          docker system df
-          ./scripts/build-android.sh
+      - run: ./scripts/build-android.sh
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
       - uses: actions/upload-artifact@v7
