@@ -71,10 +71,9 @@ jobs:
       - name: Diagnostics
         if: failure()
         run: |
-          df -h
-          free -m
-          sudo dmesg | grep -i -E 'out of memory|oom|killed process' || true
+          sudo chown -R "$USER":"$USER" "$RUNNER_TEMP/gradle-daemon" || true
           tail -n 200 "$RUNNER_TEMP"/gradle-daemon/*/daemon-*.out.log || true
+          sudo dmesg | grep -i -E 'out of memory|oom|killed process' || true
 
       - name: Upload Gradle logs
         if: failure()
