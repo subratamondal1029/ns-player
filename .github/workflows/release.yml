@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Prepare diagnostics dirs
-        run: mkdir -p ci-out/gradle-daemon ci-out/eas-tmp
+        run: mkdir -p "$RUNNER_TEMP/gradle-daemon"
 
       - name: Build APK
         run: ./scripts/build-android.sh
@@ -74,16 +74,14 @@ jobs:
           df -h
           free -m
           sudo dmesg | grep -i -E 'out of memory|oom|killed process' || true
-          tail -n 200 ci-out/gradle-daemon/*/daemon-*.out.log || true
+          tail -n 200 "$RUNNER_TEMP"/gradle-daemon/*/daemon-*.out.log || true
 
       - name: Upload Gradle logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: gradle-reports
-          path: |
-            ci-out/eas-tmp/**/build/reports/**
-            ci-out/gradle-daemon/**/*.log
+          path: ${{ runner.temp }}/gradle-daemon/**/*.log
           if-no-files-found: warn
 
       - uses: actions/upload-artifact@v7
