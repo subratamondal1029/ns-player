@@ -9,6 +9,8 @@ docker run --rm \
   -e EXPO_TOKEN \
   -e EAS_LOCAL_BUILD_ARTIFACTS_DIR=/app/build/android \
   -v "$PWD:/app" \
+  -v "$PWD/ci-out/gradle-daemon:/root/.gradle/daemon" \
+  -v "$PWD/ci-out/eas-tmp:/tmp/root" \
   -w /app \
   "$BUILDER_IMAGE" \
   sh -c "npm ci && npm run build:android"
