@@ -53,19 +53,24 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v6
+
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - run: ./scripts/build-android.sh
+
+      - name: Build APK
+        run: ./scripts/build-android.sh
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
       - uses: actions/upload-artifact@v7
         with:
           name: android
           path: build/android/ns-player.apk
           if-no-files-found: error
+
 
   web-build:
     needs: verify-version

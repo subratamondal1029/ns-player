@@ -1,6 +1,7 @@
 import { useTimestamp } from "@/context/timestampContext";
 import { pickDir } from "@/services/folderPicker/picker";
 import { Dir } from "@/types/video.type";
+import { encodePlaylistName } from "@/utils/playlistName";
 import { Check } from "lucide-react-native";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Modal, Pressable, Text, TextInput, View } from "react-native";
@@ -25,8 +26,8 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
   };
 
   const handleConfirm = () => {
-    if (playlist && dir) {
-      upload(dir, playlist);
+    if (playlist.trim() && dir) {
+      upload(dir, encodePlaylistName(playlist));
 
       setPlaylist("");
       setDir(null);
@@ -43,7 +44,7 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
       const dir = await pickDir();
       setDir(dir);
       if (playlist === "") {
-        setPlaylist(dir.name);
+        setPlaylist(encodePlaylistName(dir.name));
       }
     } catch (error) {
       setError((error as Error).message || "Failed to pick playlist");
@@ -51,7 +52,12 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
   };
 
   return (
-    <Modal transparent visible={visible} animationType="fade">
+    <Modal
+      transparent
+      visible={visible}
+      onRequestClose={handleCancel}
+      animationType="fade"
+    >
       <View className="flex-1 justify-center items-center bg-black/70 p-4">
         <View className="w-full max-w-md rounded-2xl bg-neutral-900 border border-neutral-800 p-6 shadow-2xl gap-5">
           <Text className="text-lg font-semibold text-neutral-100">
@@ -67,18 +73,19 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
             <TextInput
               value={playlist}
               onChangeText={setPlaylist}
-              placeholder="new-playlist"
+              placeholder="New Playlist"
               placeholderTextColor="#737373"
               autoCapitalize="none"
-              className="w-full bg-neutral-950/80 text-neutral-100 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm"
+              className="w-full bg-neutral-950/80 text-neutral-100 border border-neutral-800 rounded-xl px-3.5 py-2.5 text-sm focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500"
             />
           </View>
 
           {/* Pick Playlist Button */}
           <View className="gap-2 w-full">
             <Pressable
+              focusable={true}
               onPress={handlePickPlaylist}
-              className="w-full py-3 px-4 rounded-xl bg-neutral-800/80 border border-neutral-700/60 active:bg-neutral-700 flex-row items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl bg-neutral-800/80 border border-neutral-700/60 active:bg-neutral-700 flex-row items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-medium text-neutral-200">
                 Pick Playlist Folder
@@ -94,8 +101,9 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
           {/* Actions */}
           <View className="flex-row justify-end gap-3 pt-2">
             <Pressable
+              focusable={true}
               onPress={handleCancel}
-              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700"
+              className="px-4 py-2.5 rounded-xl bg-neutral-800 active:bg-neutral-700 focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-medium text-neutral-300">
                 Cancel
@@ -103,8 +111,9 @@ const UploadDialog = ({ visible, setVisible, upload }: UploadDialogProps) => {
             </Pressable>
 
             <Pressable
+              focusable={true}
               onPress={handleConfirm}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500"
+              className="px-4 py-2.5 rounded-xl bg-blue-600 active:bg-blue-500 focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
             >
               <Text className="text-sm font-semibold text-white">Upload</Text>
             </Pressable>

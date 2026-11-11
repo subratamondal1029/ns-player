@@ -29,6 +29,7 @@ func GenerateSyncQr(w http.ResponseWriter, r *http.Request) {
 }
 
 func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
+	conf := config.Get()
 	timestamp, err := service.DecodeTimestampJson(r.Body)
 
 	if err != nil {
@@ -48,7 +49,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	existing, err := service.GetTimestamp()
+	existing, err := service.GetTimestamp(conf.StatePath)
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
@@ -57,13 +58,16 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if existing.Playlist != "" && existing.Playlist != timestamp.Playlist {
+	if existing.Playlist != "" && !pkgs.ComparePlaylistName(existing.Playlist, timestamp.Playlist) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusUnprocessableEntity,
 			Message: "Playlist does not match for synchronization",
 		}, nil)
 		return
 	}
+
+	// normalize playlist before comparison and persistence
+	timestamp.Playlist = pkgs.EncodePlaylistName(timestamp.Playlist)
 
 	updatedTimestamp, isUpdated, err := service.CompareTimestamp(existing, timestamp)
 
@@ -85,7 +89,7 @@ func SyncTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = service.SaveTimestamp(updatedTimestamp)
+	err = service.SaveTimestamp(updatedTimestamp, conf.StatePath)
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,

@@ -6,3 +6,4 @@ Icon=ns-player
 Type=Application
 Categories=AudioVideo;Video;Player;
 Terminal=false
+X-AppImage-Version=3.0.0

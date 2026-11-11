@@ -10,6 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 
+import { ConfigProvider } from "@/context/configContext";
 import { TimestampProvider } from "@/context/timestampContext";
 import { VideoProvider } from "@/context/videoContext";
 import "../../global.css";
@@ -36,10 +37,12 @@ export default function RootLayout() {
 
   return (
     <VideoProvider>
-      <TimestampProvider>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }} />
-      </TimestampProvider>
+      <ConfigProvider>
+        <TimestampProvider>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false }} />
+        </TimestampProvider>
+      </ConfigProvider>
     </VideoProvider>
   );
 }

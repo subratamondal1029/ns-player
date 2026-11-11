@@ -3,6 +3,7 @@ package handler
 import (
 	"net/http"
 
+	"github.com/subratamondal1029/ns-player/config"
 	"github.com/subratamondal1029/ns-player/internal/service"
 	"github.com/subratamondal1029/ns-player/internal/validator"
 	"github.com/subratamondal1029/ns-player/internal/worker"
@@ -34,6 +35,9 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// normalize playlist name before sending to channel
+	timestamp.Playlist = pkgs.EncodePlaylistName(timestamp.Playlist)
+
 	// send to writer worker
 	writerWorkerDataChan <- *timestamp
 
@@ -44,6 +48,7 @@ func StoreTimestamp(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
+	conf := config.Get()
 	queryParams := r.URL.Query()
 	playlist := queryParams.Get("playlist")
 
@@ -55,7 +60,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timestamp, err := service.GetTimestamp()
+	timestamp, err := service.GetTimestamp(conf.StatePath)
 	if err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
@@ -64,7 +69,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if timestamp.Playlist != playlist {
+	if !pkgs.ComparePlaylistName(timestamp.Playlist, playlist) {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusNotFound,
 			Message: "Playlist does not exists",
@@ -82,7 +87,7 @@ func ReadTimestamp(w http.ResponseWriter, r *http.Request) {
 func ResetTimestamp(w http.ResponseWriter, r *http.Request) {
 	playlist := r.PathValue("playlist")
 
-	if err := service.ResetTimestamp(playlist); err != nil {
+	if err := service.ResetTimestamp(pkgs.EncodePlaylistName(playlist)); err != nil {
 		pkgs.SendResponse(w, pkgs.ApiResponse{
 			Status:  http.StatusInternalServerError,
 			Message: "failed to reset timestamp",
@@ -93,5 +98,32 @@ func ResetTimestamp(w http.ResponseWriter, r *http.Request) {
 	pkgs.SendResponse(w, pkgs.ApiResponse{
 		Status:  http.StatusOK,
 		Message: "timestamp reset successfully",
+	}, nil)
+}
+
+func UploadPlaylist(w http.ResponseWriter, r *http.Request) {
+	playlist := r.PathValue("playlist")
+
+	if playlist == "" {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusBadRequest,
+			Message: "playlist is required",
+		}, nil)
+		return
+	}
+
+	ts, err := service.UploadPlaylist(playlist)
+	if err != nil {
+		pkgs.SendResponse(w, pkgs.ApiResponse{
+			Status:  http.StatusInternalServerError,
+			Message: "failed to upload playlist timestamp",
+		}, err)
+		return
+	}
+
+	pkgs.SendResponse(w, pkgs.ApiResponse{
+		Status:  http.StatusOK,
+		Message: "playlist uploaded successfully",
+		Data:    ts,
 	}, nil)
 }

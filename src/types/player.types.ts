@@ -1,14 +1,17 @@
-import { Dialogue } from "@ltftf/srt-parser-2";
+import {parse} from "@plussub/srt-vtt-parser"
+
+export type SubtitleEntry = ReturnType<typeof parse>["entries"][number]
 
 export interface PlayerVideo {
   title: string;
   uri: string;
   initialTimestamp: number;
-  subtitle: Dialogue[] | null;
+  subtitle: SubtitleEntry[] | null;
 }
 
 export interface VideoPlayerProps {
   video: PlayerVideo;
+  playlistName?: string;
   hasPrev: boolean;
   hasNext: boolean;
   onBack: () => void;
@@ -18,11 +21,13 @@ export interface VideoPlayerProps {
 }
 
 export interface QuickControlProps {
+  controlsVisible:  boolean;
   updateTimestamp: (count: number, fwd?: boolean) => void;
   onPrev: () => void;
   onNext: () => void;
   playPause: () => void;
   subtitleToggle: () => void;
-  hideControls: () => void;
+  toggleControls: (show?: boolean) => void;
   closePlayer: () => void;
+  toggleFullscreen: () => void;
 }

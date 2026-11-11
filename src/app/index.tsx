@@ -1,5 +1,6 @@
 import {
   ActivityIndicator,
+  PermissionsAndroid,
   Platform,
   Pressable,
   Text,
@@ -18,8 +19,8 @@ import {
   checkDirExist,
   loadDir,
   loadTimestampState,
-  resetTimestamp as resetTimestampState,
   saveDir,
+  uploadPlaylist,
 } from "@/services/storage/storage";
 import { findVideos } from "@/services/video/video";
 import type { Dir } from "@/types/video.type";
@@ -40,18 +41,17 @@ export default function App() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { videos, setVideos, playNow } = useVideo();
-  const { lastPlayedVideoIdx, resetTimestamp } = useTimestamp();
+  const { currentVideoIdx, previousVideoIdx, resetTimestamp } = useTimestamp();
 
-  const saveLocalState = (dir: Dir, playlist: string) => {
+  const saveLocalState = async (dir: Dir, playlist: string) => {
     setDir(dir);
     setPlaylist(playlist);
-    loadTimestamp(playlist);
-    loadVideos(dir, playlist);
+    await loadTimestamp(playlist);
+    await loadVideos(dir, playlist);
   };
 
   const loadVideos = async (dir: Dir, playlist: string) => {
     try {
-      setLoading(true);
       const videos = sortVideos(await findVideos(dir));
       setVideos(videos);
     } catch (error) {
@@ -61,8 +61,6 @@ export default function App() {
         text1: "Error",
         text2: (error as Error).message || "Failed to get videos",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -84,10 +82,11 @@ export default function App() {
 
   const loadExistingDir = async () => {
     try {
+      setLoading(true);
       const dirData = await loadDir();
       if (!dirData) return;
 
-      saveLocalState(dirData.dir, dirData.playlist);
+      await saveLocalState(dirData.dir, dirData.playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -95,14 +94,22 @@ export default function App() {
         text1: "Error",
         text2: (error as Error).message || "Failed to load existing directory",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpload = async (dir: Dir, playlist: string) => {
     try {
+      setLoading(true);
+      const restored = await uploadPlaylist(playlist);
       await saveDir(dir, playlist);
-      await resetTimestampState(playlist);
-      saveLocalState(dir, playlist);
+      setDir(dir);
+      setPlaylist(playlist);
+      if (restored) {
+        resetTimestamp(restored);
+      }
+      await loadVideos(dir, playlist);
     } catch (error) {
       console.error(error);
       Toast.show({
@@ -110,6 +117,8 @@ export default function App() {
         text1: "Error",
         text2: (error as Error).message || "Failed to upload videos",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -136,7 +145,7 @@ export default function App() {
     const continueKeyPressListener = (e: KeyboardEvent) => {
       if (e.key === "k") {
         e.preventDefault();
-        openPlayer(lastPlayedVideoIdx);
+        openPlayer(currentVideoIdx);
       }
     };
 
@@ -149,7 +158,7 @@ export default function App() {
         window.removeEventListener("keypress", continueKeyPressListener);
       }
     };
-  }, [lastPlayedVideoIdx, openPlayer]);
+  }, [currentVideoIdx, openPlayer]);
 
   useEffect(() => {
     const checkExistsAndShowConfirm = async () => {
@@ -173,6 +182,11 @@ export default function App() {
       checkExistsAndShowConfirm();
     } else {
       loadExistingDir();
+      if (Platform.OS === "android" && Platform.Version >= 33) {
+        PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+        ).catch(() => {});
+      }
     }
   }, []);
 
@@ -203,17 +217,14 @@ export default function App() {
           {/* Header */}
           <View className="mb-6 items-center">
             <Text className="text-2xl sm:text-3xl font-bold text-neutral-100 text-center tracking-tight">
-              {decodePlaylistName(playlist) || "NS Player"}
+              {dir?.name && playlist
+                ? decodePlaylistName(playlist)
+                : "NS Player"}
             </Text>
-            {dir?.name ? (
-              <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
-                {dir.name}
-              </Text>
-            ) : null}
           </View>
 
           {/* Action Buttons */}
-          <View className="flex-row gap-3 mb-4">
+          <View className="flex-row gap-3 mb-2">
             <Pressable
               onPress={() => setShowPicker(true)}
               className="flex-1 py-3.5 px-4 rounded-xl bg-blue-600 active:bg-blue-500 items-center justify-center shadow-sm"
@@ -234,6 +245,17 @@ export default function App() {
             </Pressable>
           </View>
 
+          {dir?.name ? (
+            <View className="flex flex-row justify-between items-center w-full mb-2">
+              <Text className="text-xs sm:text-sm text-neutral-400 mt-1">
+                {playlist}
+              </Text>
+              <Text className="text-sm text-neutral-400">
+                {currentVideoIdx + 1}/{videos.length}
+              </Text>
+            </View>
+          ) : null}
+
           {/* Main Content */}
           <View className="flex-1">
             {loading ? (
@@ -246,7 +268,8 @@ export default function App() {
             ) : videos.length > 0 ? (
               <VideoList
                 videos={videos}
-                continueVideoIdx={lastPlayedVideoIdx}
+                continueVideoIdx={currentVideoIdx}
+                previousVideoIdx={previousVideoIdx}
                 play={openPlayer}
               />
             ) : (
@@ -265,7 +288,7 @@ export default function App() {
           {videos.length > 0 && (
             <View className="fixed bottom-6 left-[85%] z-50">
               <Pressable
-                onPress={() => openPlayer(lastPlayedVideoIdx)}
+                onPress={() => openPlayer(currentVideoIdx)}
                 className="w-16 h-16 justify-center items-center rounded-full bg-blue-600 active:bg-blue-500 shadow-xl shadow-blue-500/30"
               >
                 <Play color="#fff" size={28} />
